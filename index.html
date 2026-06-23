@@ -684,6 +684,7 @@ window.onerror = function(message, source, lineno, colno, error) {
             
             const isDrawingRef = useRef(false);
             const zigZagRef = useRef(null);
+            const hasCrossedRef = useRef(false);
             const [interacted, setInteracted] = useState(false);
 
             const draw = () => {
@@ -787,7 +788,6 @@ window.onerror = function(message, source, lineno, colno, error) {
             }, []);
 
             const handleMouseMove = (e) => {
-                if (!interacted) setInteracted(true);
                 const canvas = canvasRef.current;
                 if (!canvas) return;
                 
@@ -796,10 +796,24 @@ window.onerror = function(message, source, lineno, colno, error) {
                 const mouseY = e.clientY - rect.top;
                 
                 const baseline = canvas.height / 2;
+                const targetY = baseline - mouseY;
+
+                if (!hasCrossedRef.current) {
+                    if (lastPosRef.current.y !== null) {
+                        const lastTargetY = baseline - lastPosRef.current.y;
+                        if ((lastTargetY > 0 && targetY <= 0) || (lastTargetY < 0 && targetY >= 0)) {
+                            hasCrossedRef.current = true;
+                        }
+                    }
+                    if (!hasCrossedRef.current) {
+                        lastPosRef.current = { x: mouseX, y: mouseY };
+                        return;
+                    }
+                }
+
+                if (!interacted) setInteracted(true);
 
                 if (animRef.current) { clearInterval(animRef.current); animRef.current = null; }
-
-                const targetY = baseline - mouseY;
 
                 if (!isDrawingRef.current) {
                     isDrawingRef.current = true;
@@ -860,7 +874,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                         }
                         const newTotal = valuesRef.current.reduce((sum, val) => sum + val, 0);
                         setNetTotal(newTotal); draw();
-                        if (allZero) { clearInterval(animRef.current); animRef.current = null; isDrawingRef.current = false; zigZagRef.current = null; setInteracted(false); }
+                        if (allZero) { clearInterval(animRef.current); animRef.current = null; isDrawingRef.current = false; zigZagRef.current = null; setInteracted(false); hasCrossedRef.current = false; }
                     }, 16);
                 }, 800); 
             };
