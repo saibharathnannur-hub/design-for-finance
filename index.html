@@ -581,81 +581,94 @@
                         top: 0,
                         height: '100vh',
                         overflow: 'hidden',
-                        backgroundColor: '#0B111A' // Walford OS dark background
+                        backgroundColor: '#0B111A',
+                        display: 'flex',
+                        flexDirection: 'column'
                     }}>
-                        {/* Base Layer: Walford OS (Revealed as slider moves left) */}
+                        {/* Static Header Bar */}
                         <div style={{
-                            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'
+                            height: '120px',
+                            minHeight: '120px',
+                            width: '100%',
+                            backgroundColor: '#05080c',
+                            borderBottom: '1px solid #1a222c',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '0 5%',
+                            zIndex: 150
                         }}>
-                            <WalfordOSUI data={MARKET_DATA} />
-                        </div>
-                        
-                        {/* Top Layer: Bloomberg (Clipped by the slider) */}
-                        <div style={{
-                            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-                            clipPath: `polygon(0 0, ${splitPct}% 0, ${splitPct}% 100%, 0 100%)`,
-                            willChange: 'clip-path'
-                        }}>
-                            <BloombergUI data={MARKET_DATA} />
-                        </div>
-
-                        {/* Floating Headings */}
-                        <div style={{
-                            position: 'absolute', top: '40px', left: '25%', transform: 'translateX(-50%)',
-                            background: 'rgba(0,0,0,0.6)', color: 'white', padding: '16px 32px',
-                            borderRadius: '40px', fontSize: '24px', fontWeight: 'bold', zIndex: 50,
-                            backdropFilter: 'blur(8px)', opacity: splitPct > 5 ? 1 : 0, transition: 'opacity 0.3s',
-                            boxShadow: '0 8px 24px rgba(0,0,0,0.3)'
-                        }}>
-                            Before: Generic
-                        </div>
-                        <div style={{
-                            position: 'absolute', top: '40px', right: '25%', transform: 'translateX(50%)',
-                            background: 'rgba(102, 187, 106, 0.15)', color: '#66BB6A', padding: '16px 32px',
-                            borderRadius: '40px', fontSize: '24px', fontWeight: 'bold', zIndex: 50,
-                            border: '1px solid rgba(102, 187, 106, 0.3)',
-                            backdropFilter: 'blur(8px)', opacity: splitPct < 95 ? 1 : 0, transition: 'opacity 0.3s',
-                            boxShadow: '0 8px 24px rgba(0,0,0,0.3)'
-                        }}>
-                            After: with WalfordOS
-                        </div>
-
-                        {/* Slider Vertical Bar & Thumb */}
-                        {progress > 0 && progress < 1 && (
-                            <div style={{ 
-                                position: 'absolute', 
-                                top: 0, 
-                                bottom: 0, 
-                                width: '2px', 
-                                background: '#ffffff', 
-                                left: `${splitPct}%`,
-                                zIndex: 100, 
-                                pointerEvents: 'none', 
-                                boxShadow: '0 0 10px rgba(0,0,0,0.5)' 
+                            <div style={{
+                                color: 'white', fontSize: '28px', fontWeight: 'bold', 
+                                opacity: splitPct > 5 ? 1 : 0.3, transition: 'opacity 0.3s',
+                                textTransform: 'uppercase', letterSpacing: '2px'
                             }}>
-                                <div style={{
-                                    position: 'absolute',
-                                    top: '50%',
-                                    left: '50%',
-                                    transform: 'translate(-50%, -50%)',
-                                    width: '48px',
-                                    height: '48px',
-                                    background: '#ffffff',
-                                    borderRadius: '50%',
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                                    color: '#000'
-                                }}>
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width: '24px', height: '24px'}}>
-                                        <polyline points="8 8 4 12 8 16"></polyline>
-                                        <polyline points="16 8 20 12 16 16"></polyline>
-                                        <line x1="4" y1="12" x2="20" y2="12"></line>
-                                    </svg>
-                                </div>
+                                Before: Generic
                             </div>
-                        )}
+                            <div style={{
+                                color: '#66BB6A', fontSize: '28px', fontWeight: 'bold', 
+                                opacity: splitPct < 95 ? 1 : 0.3, transition: 'opacity 0.3s',
+                                textTransform: 'uppercase', letterSpacing: '2px'
+                            }}>
+                                After: with WalfordOS
+                            </div>
+                        </div>
+
+                        {/* Split Screen Container */}
+                        <div style={{ position: 'relative', flexGrow: 1, overflow: 'hidden' }}>
+                            {/* Base Layer: Walford OS (Revealed as slider moves left) */}
+                            <div style={{
+                                position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'
+                            }}>
+                                <WalfordOSUI data={MARKET_DATA} />
+                            </div>
+                            
+                            {/* Top Layer: Bloomberg (Clipped by the slider) */}
+                            <div style={{
+                                position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                                clipPath: `polygon(0 0, ${splitPct}% 0, ${splitPct}% 100%, 0 100%)`,
+                                willChange: 'clip-path'
+                            }}>
+                                <BloombergUI data={MARKET_DATA} />
+                            </div>
+
+                            {/* Slider Vertical Bar & Thumb */}
+                            {progress > 0 && progress < 1 && (
+                                <div style={{ 
+                                    position: 'absolute', 
+                                    top: 0, 
+                                    bottom: 0, 
+                                    width: '2px', 
+                                    background: '#ffffff', 
+                                    left: `${splitPct}%`,
+                                    zIndex: 100, 
+                                    pointerEvents: 'none', 
+                                    boxShadow: '0 0 10px rgba(0,0,0,0.5)' 
+                                }}>
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '50%',
+                                        left: '50%',
+                                        transform: 'translate(-50%, -50%)',
+                                        width: '48px',
+                                        height: '48px',
+                                        background: '#ffffff',
+                                        borderRadius: '50%',
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                                        color: '#000'
+                                    }}>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width: '24px', height: '24px'}}>
+                                            <polyline points="8 8 4 12 8 16"></polyline>
+                                            <polyline points="16 8 20 12 16 16"></polyline>
+                                            <line x1="4" y1="12" x2="20" y2="12"></line>
+                                        </svg>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             );
