@@ -1274,12 +1274,163 @@
             );
         }
 
+        function FooterBlocks() {
+            return (
+                <div style={{ backgroundColor: '#000', color: 'white', padding: '100px 5% 0 5%', fontFamily: 'Inter, sans-serif' }}>
+                    
+                    {/* Backed By Section */}
+                    <div style={{ textAlign: 'center', maxWidth: '1000px', margin: '0 auto 80px auto' }}>
+                        <div style={{ color: '#888', fontSize: '12px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '20px' }}>Backed By</div>
+                        <h2 style={{ fontSize: '48px', fontWeight: '300', marginBottom: '30px' }}>Incubated at IIT Madras</h2>
+                        <p style={{ color: '#aaa', fontSize: '18px', lineHeight: '1.6', marginBottom: '15px' }}>
+                            Walford is proudly incubated at Nirmaan, the pre-incubation center of IIT Madras, India's premier institution for innovation and entrepreneurship.
+                        </p>
+                        <p style={{ color: '#888', fontSize: '16px', lineHeight: '1.6' }}>
+                            Walford Capitals is incubated at Nirmaan, IIT Madras.<br/>
+                            Backed by CFIL, DoMS IITM.
+                        </p>
+                    </div>
+        
+                    {/* Feature Cards Grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', maxWidth: '1200px', margin: '0 auto 100px auto' }}>
+                        <div style={{ backgroundColor: '#0A0A0A', padding: '40px 30px', borderRadius: '16px', textAlign: 'center', border: '1px solid #1a1a1a' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#1A1A1A', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto' }}>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width: '20px', height: '20px'}}><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+                            </div>
+                            <h3 style={{ fontSize: '18px', fontWeight: '500', marginBottom: '15px' }}>World-Class Mentorship</h3>
+                            <p style={{ color: '#888', fontSize: '14px', lineHeight: '1.6' }}>Access to IIT Madras faculty, industry experts, and successful entrepreneurs</p>
+                        </div>
+                        <div style={{ backgroundColor: '#0A0A0A', padding: '40px 30px', borderRadius: '16px', textAlign: 'center', border: '1px solid #1a1a1a' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#1A1A1A', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto' }}>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width: '20px', height: '20px'}}><path d="M13.5 2.5a8.5 8.5 0 0 0-11 11l-2 8 8-2a8.5 8.5 0 0 0 11-11c0-3.3-2.7-6-6-6z"></path><path d="m15.5 8.5-3 3"></path><path d="m8.5 15.5-3 3"></path></svg>
+                            </div>
+                            <h3 style={{ fontSize: '18px', fontWeight: '500', marginBottom: '15px' }}>Innovation Ecosystem</h3>
+                            <p style={{ color: '#888', fontSize: '14px', lineHeight: '1.6' }}>Part of India's leading innovation hub with cutting-edge resources</p>
+                        </div>
+                        <div style={{ backgroundColor: '#0A0A0A', padding: '40px 30px', borderRadius: '16px', textAlign: 'center', border: '1px solid #1a1a1a' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#1A1A1A', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto' }}>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width: '20px', height: '20px'}}><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                            </div>
+                            <h3 style={{ fontSize: '18px', fontWeight: '500', marginBottom: '15px' }}>Startup Network</h3>
+                            <p style={{ color: '#888', fontSize: '14px', lineHeight: '1.6' }}>Connect with fellow founders and the broader IIT Madras alumni network</p>
+                        </div>
+                    </div>
+        
+                    {/* Small Stat Cards Grid */}
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap', maxWidth: '1200px', margin: '0 auto 150px auto' }}>
+                        <div style={{ backgroundColor: '#0A0A0A', padding: '30px', borderRadius: '12px', minWidth: '220px', textAlign: 'center', border: '1px solid #1a1a1a', flex: '1' }}>
+                            <div style={{ fontSize: '24px', fontWeight: '400', marginBottom: '8px' }}>IIT Madras</div>
+                            <div style={{ color: '#888', fontSize: '12px' }}>Premier Institution</div>
+                        </div>
+                        <div style={{ backgroundColor: '#0A0A0A', padding: '30px', borderRadius: '12px', minWidth: '220px', textAlign: 'center', border: '1px solid #1a1a1a', flex: '1' }}>
+                            <div style={{ fontSize: '24px', fontWeight: '400', marginBottom: '8px' }}>Nirmaan</div>
+                            <div style={{ color: '#888', fontSize: '12px' }}>Pre-Incubator</div>
+                        </div>
+                        <div style={{ backgroundColor: '#0A0A0A', padding: '30px', borderRadius: '12px', minWidth: '220px', textAlign: 'center', border: '1px solid #1a1a1a', flex: '1' }}>
+                            <div style={{ fontSize: '24px', fontWeight: '400', marginBottom: '8px' }}>2024</div>
+                            <div style={{ color: '#888', fontSize: '12px' }}>Incubation Year</div>
+                        </div>
+                        <div style={{ backgroundColor: '#0A0A0A', padding: '30px', borderRadius: '12px', minWidth: '220px', textAlign: 'center', border: '1px solid #1a1a1a', flex: '1' }}>
+                            <div style={{ fontSize: '24px', fontWeight: '400', marginBottom: '8px' }}>Innovation</div>
+                            <div style={{ color: '#888', fontSize: '12px' }}>Ecosystem</div>
+                        </div>
+                    </div>
+        
+                    {/* Waitlist Section */}
+                    <div style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto 150px auto' }}>
+                        <div style={{ color: '#888', fontSize: '12px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '20px' }}>Get Early Access</div>
+                        <h2 style={{ fontSize: '42px', fontWeight: '700', marginBottom: '20px' }}>Be first in line.</h2>
+                        <p style={{ color: '#888', fontSize: '16px', lineHeight: '1.6', marginBottom: '40px' }}>
+                            Join our waitlist and get early access to Walford OS before public launch. Built for serious analysts.
+                        </p>
+                        <form style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '20px' }} onSubmit={(e) => e.preventDefault()}>
+                            <input type="email" placeholder="Enter your email" required style={{
+                                width: '100%', padding: '20px', boxSizing: 'border-box',
+                                backgroundColor: '#0A0A0A', border: '1px solid #222', borderRadius: '8px',
+                                color: 'white', fontSize: '16px', outline: 'none'
+                            }} />
+                            <button type="submit" style={{
+                                width: '100%', padding: '20px', boxSizing: 'border-box',
+                                backgroundColor: 'white', color: 'black', border: 'none', borderRadius: '8px',
+                                fontSize: '18px', fontWeight: '600', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px'
+                            }}>
+                                Join Waiting List &rarr;
+                            </button>
+                        </form>
+                        <div style={{ color: '#444', fontSize: '12px' }}>
+                            Incubated at IIT Madras &bull; Backed by CFIL, DLMS, IITM
+                        </div>
+                    </div>
+                    
+                    {/* Footer Section */}
+                    <div style={{ borderTop: '1px solid #111', paddingTop: '80px', paddingBottom: '40px', maxWidth: '1200px', margin: '0 auto' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '40px', marginBottom: '80px' }}>
+                            <div style={{ maxWidth: '400px' }}>
+                                <div style={{ fontSize: '24px', fontWeight: '300', marginBottom: '20px' }}>Walford OS</div>
+                                <p style={{ color: '#888', fontSize: '14px', lineHeight: '1.6', marginBottom: '30px' }}>
+                                    AI-powered financial intelligence platform designed for the world's most sophisticated investment professionals.
+                                </p>
+                                <div style={{ display: 'flex', gap: '15px' }}>
+                                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#1A1A1A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width: '18px', height: '18px'}}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+                                    </div>
+                                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#1A1A1A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width: '18px', height: '18px'}}><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style={{ display: 'flex', gap: '80px', flexWrap: 'wrap' }}>
+                                <div>
+                                    <div style={{ color: '#fff', fontSize: '14px', marginBottom: '20px' }}>Product</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                        <a href="#" style={{ color: '#888', textDecoration: 'none', fontSize: '14px' }}>Dashboard</a>
+                                        <a href="#" style={{ color: '#888', textDecoration: 'none', fontSize: '14px' }}>Features</a>
+                                        <a href="#" style={{ color: '#888', textDecoration: 'none', fontSize: '14px' }}>API</a>
+                                        <a href="#" style={{ color: '#888', textDecoration: 'none', fontSize: '14px' }}>Security</a>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style={{ color: '#fff', fontSize: '14px', marginBottom: '20px' }}>Company</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                        <a href="#" style={{ color: '#888', textDecoration: 'none', fontSize: '14px' }}>About</a>
+                                        <a href="#" style={{ color: '#888', textDecoration: 'none', fontSize: '14px' }}>Careers</a>
+                                        <a href="#" style={{ color: '#888', textDecoration: 'none', fontSize: '14px' }}>Contact</a>
+                                        <a href="#" style={{ color: '#888', textDecoration: 'none', fontSize: '14px' }}>Privacy</a>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style={{ color: '#fff', fontSize: '14px', marginBottom: '20px' }}>Contact</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                        <a href="#" style={{ color: '#888', textDecoration: 'none', fontSize: '14px' }}>office@walfordos.com</a>
+                                        <a href="#" style={{ color: '#888', textDecoration: 'none', fontSize: '14px' }}>hello@walfordos.com</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+        
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', borderTop: '1px solid #111', paddingTop: '30px', paddingBottom: '30px' }}>
+                            <div style={{ color: '#666', fontSize: '12px' }}>&copy; 2024 Walford OS. All rights reserved.</div>
+                            <div style={{ color: '#666', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                Built for the future of finance.
+                                <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width: '18px', height: '18px'}}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            );
+        }
+
         // --- Main App Composer ---
         function App() {
             return (
                 <div style={{ backgroundColor: '#000', fontFamily: 'Inter, sans-serif' }}>
                     <HeroTransitionSection />
                     <ScrollTransitionSection />
+                    <FooterBlocks />
                 </div>
             );
         }
