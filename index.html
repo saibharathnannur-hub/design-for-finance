@@ -1230,6 +1230,816 @@
             );
         }
 
+        // --- Transition Engine (Split-Screen Slider) ---
+        function ScrollTransitionSection() {
+            const sectionRef = useRef(null);
+            const [progress, setProgress] = useState(0);
+
+            useEffect(() => {
+                const handleScroll = () => {
+                    if (!sectionRef.current) return;
+                    const rect = sectionRef.current.getBoundingClientRect();
+                    
+                    // Total scrollable distance inside this section
+                    const scrollDistance = rect.height - window.innerHeight;
+                    
+                    // Current progress based on how far top is pushed up
+                    let currentProgress = -rect.top / scrollDistance;
+                    currentProgress = Math.max(0, Math.min(1, currentProgress));
+                    
+                    setProgress(currentProgress);
+                };
+                window.addEventListener('scroll', handleScroll);
+                handleScroll();
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
+
+            // progress 0.0 to 0.2: Slider is pinned to the right (splitPct = 100)
+            // progress 0.2 to 1.0: Slider moves left to reveal WalfordOS (splitPct = 0)
+            const sliderProgress = Math.max(0, (progress - 0.2) / 0.8);
+            const splitPct = (1 - sliderProgress) * 100;
+
+            return (
+                <div ref={sectionRef} style={{ height: '300vh', position: 'relative' }}>
+                    <div style={{
+                        position: 'sticky',
+                        top: 0,
+                        height: '100vh',
+                        overflow: 'hidden',
+                        backgroundColor: '#0B111A' // Walford OS dark background
+                    }}>
+                        {/* Base Layer: Walford OS (Revealed as slider moves left) */}
+                        <div style={{
+                            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                            display: 'flex', flexDirection: 'column'
+                        }}>
+                            <div style={{
+                                height: '120px', minHeight: '120px', width: '100%',
+                                backgroundColor: '#05080c', borderBottom: '1px solid #1a222c',
+                                display: 'flex', alignItems: 'center', padding: '0 5%'
+                            }}>
+                                <div style={{ color: '#66BB6A', fontSize: '28px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px' }}>
+                                    After: with WalfordOS
+                                </div>
+                            </div>
+                            <div style={{ position: 'relative', flexGrow: 1, overflow: 'hidden' }}>
+                                <WalfordOSUI data={MARKET_DATA} />
+                            </div>
+                        </div>
+                        
+                        {/* Top Layer: Bloomberg (Clipped by the slider) */}
+                        <div style={{
+                            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                            clipPath: `polygon(0 0, ${splitPct}% 0, ${splitPct}% 100%, 0 100%)`,
+                            willChange: 'clip-path',
+                            display: 'flex', flexDirection: 'column'
+                        }}>
+                            <div style={{
+                                height: '120px', minHeight: '120px', width: '100%',
+                                backgroundColor: '#05080c', borderBottom: '1px solid #1a222c',
+                                display: 'flex', alignItems: 'center', padding: '0 5%'
+                            }}>
+                                <div style={{ color: 'white', fontSize: '28px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px' }}>
+                                    Before: Generic
+                                </div>
+                            </div>
+                            <div style={{ position: 'relative', flexGrow: 1, overflow: 'hidden' }}>
+                                <BloombergUI data={MARKET_DATA} />
+                            </div>
+                        </div>
+
+                        {/* Slider Vertical Bar & Thumb */}
+                        {progress > 0 && progress < 1 && (
+                            <div style={{ 
+                                position: 'absolute', 
+                                top: 0, 
+                                bottom: 0, 
+                                width: '2px', 
+                                background: '#ffffff', 
+                                left: `${splitPct}%`,
+                                zIndex: 100, 
+                                pointerEvents: 'none', 
+                                boxShadow: '0 0 10px rgba(0,0,0,0.5)' 
+                            }}>
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    width: '48px',
+                                    height: '48px',
+                                    background: '#ffffff',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                                    color: '#000'
+                                }}>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width: '24px', height: '24px'}}>
+                                        <polyline points="8 8 4 12 8 16"></polyline>
+                                        <polyline points="16 8 20 12 16 16"></polyline>
+                                        <line x1="4" y1="12" x2="20" y2="12"></line>
+                                    </svg>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // --- Original Interactive Graph adapted as Hero Transition Section ---
+        function HeroTransitionSection() {
+            const sectionRef = useRef(null);
+            const [progress, setProgress] = useState(0);
+
+            useEffect(() => {
+                const handleScroll = () => {
+                    if (!sectionRef.current) return;
+                    const rect = sectionRef.current.getBoundingClientRect();
+                    const scrollDistance = rect.height - window.innerHeight;
+                    let currentProgress = -rect.top / scrollDistance;
+                    currentProgress = Math.max(0, Math.min(1, currentProgress));
+                    setProgress(currentProgress);
+                };
+                window.addEventListener('scroll', handleScroll);
+                handleScroll();
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
+
+            const canvasRef = useRef(null);
+            const [netTotal, setNetTotal] = useState(0);
+            const valuesRef = useRef(new Array(NUM_BARS).fill(0));
+            const timerRef = useRef(null);
+            const animRef = useRef(null);
+            const lastPosRef = useRef({ x: null, y: null });
+            
+            const staticNoise = useMemo(() => Array.from({length: NUM_BARS}, () => Math.random() * 0.3 + 0.85), []);
+            
+            const isDrawingRef = useRef(false);
+            const zigZagRef = useRef(null);
+            const [interacted, setInteracted] = useState(false);
+
+            const draw = () => {
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                const width = canvas.width;
+                const height = canvas.height;
+                const baseline = height / 2;
+                const barWidth = width / NUM_BARS;
+
+                ctx.clearRect(0, 0, width, height);
+
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                for (let x = 0; x <= width; x += 80) { ctx.moveTo(x, 0); ctx.lineTo(x, height); }
+                for (let y = 0; y <= height; y += 80) { ctx.moveTo(0, y); ctx.lineTo(width, y); }
+                ctx.stroke();
+
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(0, baseline); ctx.lineTo(width, baseline);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.strokeStyle = 'rgba(107, 203, 222, 0.7)';
+                ctx.lineWidth = 1.5;
+                for (let i = 0; i < NUM_BARS; i++) {
+                    let sum = 0, count = 0;
+                    for (let j = Math.max(0, i - 5); j <= i; j++) { sum += valuesRef.current[j]; count++; }
+                    const y = baseline - (sum / count);
+                    const x = i * barWidth + barWidth/2;
+                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.strokeStyle = 'rgba(160, 165, 176, 0.4)';
+                ctx.lineWidth = 1.5;
+                for (let i = 0; i < NUM_BARS; i++) {
+                    let sum = 0, count = 0;
+                    for (let j = Math.max(0, i - 15); j <= i; j++) { sum += valuesRef.current[j]; count++; }
+                    const y = baseline - (sum / count);
+                    const x = i * barWidth + barWidth/2;
+                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+
+                const MIN_BODY = 2; 
+
+                for (let i = 0; i < NUM_BARS; i++) {
+                    const closeVal = valuesRef.current[i];
+                    const openVal = i > 0 ? valuesRef.current[i-1] : closeVal;
+                    
+                    if (Math.abs(closeVal) < 0.5 && Math.abs(openVal) < 0.5) continue;
+                    
+                    const x = i * barWidth;
+                    const bodyWidth = Math.max(2, barWidth * 0.5); 
+                    const bodyX = x + (barWidth - bodyWidth) / 2;
+
+                    const isGreen = closeVal >= openVal;
+                    const color = isGreen ? '#52B974' : '#E24B46';
+                    
+                    const yOpen = baseline - openVal;
+                    const yClose = baseline - closeVal;
+                    
+                    const topY = Math.min(yOpen, yClose);
+                    const bottomY = Math.max(yOpen, yClose);
+                    const bodyHeight = Math.max(MIN_BODY, bottomY - topY);
+
+                    const noiseVal = staticNoise[i]; 
+                    const wickTopExtension = (noiseVal * 40) % 20;
+                    const wickBottomExtension = (noiseVal * 80) % 20;
+
+                    const wickHigh = topY - wickTopExtension;
+                    const wickLow = bottomY + wickBottomExtension;
+
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = Math.max(1, bodyWidth * 0.15);
+                    ctx.beginPath();
+                    ctx.moveTo(x + barWidth/2, wickHigh); ctx.lineTo(x + barWidth/2, wickLow);
+                    ctx.stroke();
+
+                    ctx.fillStyle = color;
+                    ctx.fillRect(bodyX, topY, bodyWidth, bodyHeight);
+                }
+            };
+
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                const updateSize = () => {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight; // Still 100vh perfectly
+                    draw();
+                };
+                window.addEventListener('resize', updateSize);
+                updateSize();
+                return () => window.removeEventListener('resize', updateSize);
+            }, []);
+
+            const handleMouseMove = (e) => {
+                if (!interacted) setInteracted(true);
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+                
+                // Get mouse pos relative to canvas to support scrolling correctly
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                const baseline = canvas.height / 2;
+
+                if (animRef.current) { clearInterval(animRef.current); animRef.current = null; }
+
+                const targetY = baseline - mouseY;
+
+                if (!isDrawingRef.current) {
+                    isDrawingRef.current = true;
+                    zigZagRef.current = { anchors: [{ x: mouseX, y: targetY }], currentPeak: { x: mouseX, y: targetY }, isLookingForHigh: targetY >= 0 };
+                    lastPosRef.current = { x: mouseX, y: mouseY };
+                    return;
+                }
+
+                const lastX = lastPosRef.current.x;
+
+                if (lastX !== null && mouseX < lastX) { lastPosRef.current = { x: mouseX, y: mouseY }; return; }
+
+                let zz = zigZagRef.current;
+                let lastAnchor = zz.anchors[zz.anchors.length - 1];
+                const THRESHOLD = (canvas.height / 2) * 0.08; 
+
+                if (zz.isLookingForHigh) {
+                    if (targetY > zz.currentPeak.y) zz.currentPeak = { x: mouseX, y: targetY };
+                    else if (zz.currentPeak.y - targetY > THRESHOLD) {
+                        zz.anchors.push(zz.currentPeak); lastAnchor = zz.currentPeak; zz.isLookingForHigh = false; zz.currentPeak = { x: mouseX, y: targetY };
+                    }
+                } else {
+                    if (targetY < zz.currentPeak.y) zz.currentPeak = { x: mouseX, y: targetY };
+                    else if (targetY - zz.currentPeak.y > THRESHOLD) {
+                        zz.anchors.push(zz.currentPeak); lastAnchor = zz.currentPeak; zz.isLookingForHigh = true; zz.currentPeak = { x: mouseX, y: targetY };
+                    }
+                }
+
+                const drawSegment = (start, end) => {
+                    const startBar = Math.max(0, Math.floor((start.x / canvas.width) * NUM_BARS));
+                    const endBar = Math.min(NUM_BARS - 1, Math.floor((end.x / canvas.width) * NUM_BARS));
+                    if (endBar >= startBar) {
+                        for (let i = startBar; i <= endBar; i++) {
+                            const progress = startBar === endBar ? 1 : (i - startBar) / (endBar - startBar);
+                            const exactY = start.y + (end.y - start.y) * progress;
+                            if (Math.abs(exactY) > 2) valuesRef.current[i] = exactY * staticNoise[i];
+                            else valuesRef.current[i] = exactY;
+                        }
+                    }
+                };
+
+                drawSegment(lastAnchor, zz.currentPeak);
+                drawSegment(zz.currentPeak, { x: mouseX, y: targetY });
+
+                lastPosRef.current = { x: mouseX, y: mouseY };
+                
+                const total = valuesRef.current.reduce((sum, val) => sum + val, 0);
+                setNetTotal(total);
+                draw();
+
+                clearTimeout(timerRef.current);
+                timerRef.current = setTimeout(() => {
+                    animRef.current = setInterval(() => {
+                        let allZero = true;
+                        for (let i = 0; i < NUM_BARS; i++) {
+                            if (Math.abs(valuesRef.current[i]) < 1) valuesRef.current[i] = 0;
+                            else { valuesRef.current[i] *= 0.92; allZero = false; }
+                        }
+                        const newTotal = valuesRef.current.reduce((sum, val) => sum + val, 0);
+                        setNetTotal(newTotal); draw();
+                        if (allZero) { clearInterval(animRef.current); animRef.current = null; isDrawingRef.current = false; zigZagRef.current = null; }
+                    }, 16);
+                }, 800); 
+            };
+
+            const handleMouseLeave = () => lastPosRef.current = { x: null, y: null };
+
+            const sign = netTotal >= 0 ? '+' : '-';
+            const displayValue = Math.abs(Math.round(netTotal * 5));
+            const color = netTotal >= 0 ? '#52B974' : '#E24B46';
+
+            // Animation values based on progress
+            const graphScale = 1 - (progress * 0.8); // zoom out from 1 to 0.2
+            const graphOpacity = Math.max(0, 1 - (progress * 2)); // Smooth crossfade over scrolling
+            const quickFadeOpacity = Math.max(0, 1 - (progress * 20)); // Instantly fade out UI text elements
+
+            const growingGraphPointsArray = useMemo(() => {
+                const keyframes = [
+                    {x: 0, y: 90},
+                    {x: 15, y: 70},
+                    {x: 30, y: 40}, // Peak 1
+                    {x: 40, y: 65}, // Valley 1
+                    {x: 50, y: 55},
+                    {x: 60, y: 75}, // Valley 2
+                    {x: 70, y: 20}, // Peak 2 (Massive)
+                    {x: 85, y: 60}, // Valley 3
+                    {x: 100, y: 5}  // Final Top
+                ];
+                let pts = [];
+                for (let x = 0; x <= 100; x += 1) {
+                    let i = 0;
+                    while (i < keyframes.length - 1 && keyframes[i+1].x < x) i++;
+                    let p1 = keyframes[i];
+                    let p2 = keyframes[i+1] || p1;
+                    
+                    let segmentProgress = (x - p1.x) / (p2.x - p1.x || 1);
+                    // Smooth easing for a beautiful curve
+                    let ease = 0.5 - Math.cos(segmentProgress * Math.PI) / 2;
+                    let y = p1.y + (p2.y - p1.y) * ease;
+                    
+                    // Micro-noise for organic feel
+                    y += (Math.random() - 0.5) * 4;
+                    pts.push({x, y});
+                }
+                return pts;
+            }, []);
+            const growingGraphPoints = growingGraphPointsArray.map(p => `${p.x},${p.y}`).join(' ');
+
+            // Complex Piecewise Narrative Logic
+            let graphDrawProgress = 0;
+            if (progress <= 0.1) {
+                graphDrawProgress = 0;
+            } else if (progress <= 0.25) {
+                // Grow 1
+                graphDrawProgress = ((progress - 0.1) / 0.15) * 0.3;
+            } else if (progress <= 0.45) {
+                // Pause 1
+                graphDrawProgress = 0.3;
+            } else if (progress <= 0.6) {
+                // Grow 2
+                graphDrawProgress = 0.3 + ((progress - 0.45) / 0.15) * 0.4;
+            } else if (progress <= 0.85) {
+                // Pause 2
+                graphDrawProgress = 0.7;
+            } else {
+                // Final Spike
+                graphDrawProgress = 0.7 + ((progress - 0.85) / 0.15) * 0.3;
+            }
+            
+            const tipX = graphDrawProgress * 100;
+            let tipY = 0;
+            let tipAngle = 0;
+            let activeGraphPointsString = "";
+
+            if (growingGraphPointsArray.length > 0) {
+                const floorX = Math.floor(tipX);
+                const ceilX = Math.ceil(tipX);
+                if (floorX === ceilX) {
+                    tipY = growingGraphPointsArray[floorX]?.y || 0;
+                } else {
+                    const p1 = growingGraphPointsArray[floorX];
+                    const p2 = growingGraphPointsArray[ceilX];
+                    if (p1 && p2) {
+                        tipY = p1.y + (p2.y - p1.y) * (tipX - floorX);
+                    }
+                }
+
+                // Generate active path string sliced exactly at tipX
+                const activePoints = growingGraphPointsArray.filter(p => p.x <= tipX);
+                if (activePoints.length > 0 && activePoints[activePoints.length - 1].x !== tipX) {
+                    activePoints.push({ x: tipX, y: tipY });
+                }
+                activeGraphPointsString = activePoints.map(p => `${p.x},${p.y}`).join(' ');
+
+                // Calculate exact tangent angle of the curve at this X-coordinate
+                const angleFloor = Math.max(0, Math.floor(tipX) - 1);
+                const angleCeil = Math.min(100, Math.ceil(tipX) + 1);
+                const p1 = growingGraphPointsArray[angleFloor];
+                const p2 = growingGraphPointsArray[angleCeil];
+                if (p1 && p2 && p2.x !== p1.x) {
+                    // Adjust dx/dy to physical screen pixels so angle is visually correct
+                    const dx = (p2.x - p1.x) * (window.innerWidth / 100);
+                    const dy = (p2.y - p1.y) * (window.innerHeight / 100);
+                    tipAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+                }
+            }
+
+            // Cinematic Zoom, Pan & Dim Logic
+            let graphDynamicScale = 1.0;
+            let graphDynamicOpacity = 1.0;
+            let graphTranslateX = 0;
+            let graphTranslateY = 0;
+            
+            let text1Opacity = 0;
+            let text2Opacity = 0;
+
+            const peak1X = 30;
+            const peak1Y = growingGraphPointsArray[30].y;
+            const peak2X = 70;
+            const peak2Y = growingGraphPointsArray[70].y;
+
+            // Pause 1 zoom & text (Peak at 30%)
+            if (progress > 0.25 && progress < 0.45) {
+                let p = 0;
+                if (progress < 0.3) {
+                    p = (progress - 0.25) / 0.05;
+                    text1Opacity = p; 
+                } else if (progress < 0.4) {
+                    p = 1;
+                    text1Opacity = 1;
+                } else {
+                    p = 1 - ((progress - 0.4) / 0.05);
+                    text1Opacity = p; 
+                }
+                
+                graphDynamicScale = 1.0 + (p * 0.6); // Zoom to 1.6
+                graphDynamicOpacity = 1.0 - (p * 0.7); // Dim to 0.3
+                
+                // Pan camera to move peak to the absolute center (50, 50)
+                graphTranslateX = (50 - peak1X) * 1.6 * p;
+                graphTranslateY = (50 - peak1Y) * 1.6 * p;
+            }
+
+            // Pause 2 zoom & text (Peak at 70%)
+            if (progress > 0.6 && progress < 0.85) {
+                let p = 0;
+                if (progress < 0.65) {
+                    p = (progress - 0.6) / 0.05;
+                    text2Opacity = p;
+                } else if (progress < 0.8) {
+                    p = 1;
+                    text2Opacity = 1;
+                } else {
+                    p = 1 - ((progress - 0.8) / 0.05);
+                    text2Opacity = p;
+                }
+
+                graphDynamicScale = 1.0 + (p * 0.6);
+                graphDynamicOpacity = 1.0 - (p * 0.7);
+                
+                // Pan camera to move peak to the absolute center (50, 50)
+                graphTranslateX = (50 - peak2X) * 1.6 * p;
+                graphTranslateY = (50 - peak2Y) * 1.6 * p;
+            }
+
+            // Calculate the exact screen coordinates of the peaks as they pan and zoom
+            const screenPeak1X = 50 + (peak1X - 50) * graphDynamicScale + graphTranslateX;
+            const screenPeak1Y = 50 + (peak1Y - 50) * graphDynamicScale + graphTranslateY;
+
+            const screenPeak2X = 50 + (peak2X - 50) * graphDynamicScale + graphTranslateX;
+            const screenPeak2Y = 50 + (peak2Y - 50) * graphDynamicScale + graphTranslateY;
+
+            return (
+                <div ref={sectionRef} style={{ height: '250vh', position: 'relative' }}>
+                    <div style={{
+                        position: 'sticky',
+                        top: 0,
+                        height: '100vh',
+                        overflow: 'hidden',
+                        backgroundColor: '#000',
+                        pointerEvents: progress > 0.8 ? 'none' : 'auto'
+                    }}>
+                        {/* Interactive Graph Layer */}
+                        <div style={{
+                            width: '100%', height: '100%',
+                            transform: `scale(${graphScale})`,
+                            transformOrigin: 'center center',
+                            opacity: graphOpacity,
+                            willChange: 'transform, opacity',
+                            pointerEvents: progress > 0.05 ? 'none' : 'auto'
+                        }}>
+                            <div className="hero-section" style={{ position: 'absolute', top: 0, left: 0, height: '100%', width: '100%' }}>
+                                <div className="map-bg"></div>
+                                <canvas className="hero-canvas" ref={canvasRef} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} />
+                                
+                                <div className="blur-overlay"></div>
+                                <div className="center-boundary"></div>
+
+                                <div className="logo-container" style={{ opacity: quickFadeOpacity }}>
+                                    <div className="logo-text">WalfordOS</div>
+                                </div>
+                                
+                                <header className="top-nav" style={{ opacity: quickFadeOpacity }}>
+                                    <div className="nav-links">
+                                        <a>ABOUT US</a>
+                                        <a>DASHBOARD</a>
+                                        <a>FEATURES</a>
+                                        <a>FINANCIAL MODELS</a>
+                                        <a>CONTACT</a>
+                                    </div>
+                                    <button className="nav-btn">Get Started</button>
+                                </header>
+                                
+                                <div className="stats" style={{ opacity: quickFadeOpacity }}>
+                                    <div className="stats-label">Net Unrealized P&L</div>
+                                    <div className="stats-value" style={{ color: color }}>{sign}${displayValue.toLocaleString()}</div>
+                                </div>
+
+                                {!interacted && (
+                                    <div className="instruction" style={{ opacity: quickFadeOpacity }}>Draw the market dynamically with your cursor</div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Foreground Growing Graph */}
+                        <div style={{ 
+                            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', 
+                            pointerEvents: 'none', zIndex: 5,
+                            transform: `translate(${graphTranslateX}%, ${graphTranslateY}%) scale(${graphDynamicScale})`,
+                            transformOrigin: 'center center',
+                            opacity: graphDynamicOpacity,
+                            willChange: 'transform, opacity'
+                        }}>
+                            <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ width: '100%', height: '100%' }}>
+                                <g>
+                                    {/* Outer Glow */}
+                                    <polyline 
+                                        points={activeGraphPointsString} 
+                                        fill="none" 
+                                        stroke="#66BB6A" 
+                                        strokeWidth="1"
+                                        opacity="0.05"
+                                        filter="blur(1px)"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
+                                    {/* Inner Glow */}
+                                    <polyline 
+                                        points={activeGraphPointsString} 
+                                        fill="none" 
+                                        stroke="#66BB6A" 
+                                        strokeWidth="0.8"
+                                        opacity="0.15"
+                                        filter="blur(1.5px)"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
+                                    
+                                    {/* Main Sharp Line */}
+                                    <polyline 
+                                        points={activeGraphPointsString} 
+                                        fill="none" 
+                                        stroke="#66BB6A" 
+                                        strokeWidth="0.8"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
+                                </g>
+                            </svg>
+
+                            {/* Simple Path Pointer */}
+                            {graphDrawProgress > 0 && graphDrawProgress < 1 && (
+                                <div style={{
+                                    position: 'absolute',
+                                    left: `${tipX}%`,
+                                    top: `${tipY}%`,
+                                    width: '8px',
+                                    height: '8px',
+                                    backgroundColor: '#FFF',
+                                    borderRadius: '50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    boxShadow: '0 0 15px 5px rgba(102, 187, 106, 0.4), 0 0 8px 2px rgba(102, 187, 106, 0.8)',
+                                    zIndex: 10
+                                    /* CRITICAL: No CSS transition! This ensures the dot instantly tracks the path without lagging or 'teleporting' when scrolling fast. */
+                                }} />
+                            )}
+                        </div>
+
+                        {/* Story Text Checkpoint 1 (Anchored above the panning Peak 1) */}
+                        <div style={{
+                            position: 'absolute', top: `${screenPeak1Y}%`, left: `${screenPeak1X}%`, 
+                            transform: `translate(-50%, -100%) translateY(-30px)`,
+                            opacity: text1Opacity, pointerEvents: 'none', zIndex: 10,
+                            willChange: 'opacity, top, left'
+                        }}>
+                            <div style={{ textAlign: 'center', width: '800px', transform: `translateY(${20 - text1Opacity*20}px)`, transition: 'transform 0.1s' }}>
+                                <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '20px', fontWeight: 600 }}>AI-Powered Equity Research</div>
+                                <h1 style={{ fontSize: '4.5rem', fontWeight: 'bold', lineHeight: '1.1', margin: '0 0 30px 0', color: 'white' }}>
+                                    One Dashboard.<br/>
+                                    Replace Everything.
+                                </h1>
+                                <p style={{ color: 'white', fontSize: '1.2rem' }}>Replace 6 screens, multiple tools, and 2 interns with one powerful AI</p>
+                            </div>
+                        </div>
+
+                        {/* Story Text Checkpoint 2 (Anchored above the panning Peak 2) */}
+                        <div style={{
+                            position: 'absolute', top: `${screenPeak2Y}%`, left: `${screenPeak2X}%`, 
+                            transform: `translate(-50%, -100%) translateY(-30px)`,
+                            opacity: text2Opacity, pointerEvents: 'none', zIndex: 10,
+                            willChange: 'opacity, top, left'
+                        }}>
+                            <div style={{ textAlign: 'center', width: '800px', transform: `translateY(${20 - text2Opacity*20}px)`, transition: 'transform 0.1s' }}>
+                                <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '20px', fontWeight: 600 }}>What We Built</div>
+                                <h2 style={{ color: 'white', fontSize: '3.5rem', fontWeight: 'bold', lineHeight: '1.1', margin: '0 0 30px 0' }}>
+                                    One platform that replaces everything.
+                                </h2>
+                                <p style={{ color: 'white', fontSize: '1.1rem', lineHeight: '1.6', marginBottom: '40px' }}>
+                                    Walford OS consolidates portfolio tracking, quantitative research, risk management and market intelligence into a single AI-powered dashboard. No more switching between tools, tabs and interns.
+                                </p>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', alignItems: 'center' }}>
+                                    <div style={{ color: 'white', fontSize: '1.1rem' }}>Real-time portfolio snapshot with live P&L tracking</div>
+                                    <div style={{ color: 'white', fontSize: '1.1rem' }}>AI-powered research across 500+ instruments</div>
+                                    <div style={{ color: 'white', fontSize: '1.1rem' }}>Institutional-grade risk metrics at a glance</div>
+                                    <div style={{ color: 'white', fontSize: '1.1rem' }}>Built for equity research analysts and PMS managers</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            );
+        }
+
+        function FooterBlocks() {
+            return (
+                <div style={{ backgroundColor: '#000', color: 'white', padding: '100px 5% 0 5%', fontFamily: 'Inter, sans-serif' }}>
+                    
+                    {/* Backed By Section */}
+                    <div style={{ textAlign: 'center', maxWidth: '1000px', margin: '0 auto 80px auto' }}>
+                        <div style={{ color: '#888', fontSize: '12px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '20px' }}>Backed By</div>
+                        <h2 style={{ fontSize: '48px', fontWeight: '300', marginBottom: '30px' }}>Incubated at IIT Madras</h2>
+                        <p style={{ color: '#aaa', fontSize: '18px', lineHeight: '1.6', marginBottom: '15px' }}>
+                            Walford is proudly incubated at Nirmaan, the pre-incubation center of IIT Madras, India's premier institution for innovation and entrepreneurship.
+                        </p>
+                        <p style={{ color: '#888', fontSize: '16px', lineHeight: '1.6' }}>
+                            Walford Capitals is incubated at Nirmaan, IIT Madras.<br/>
+                            Backed by CFIL, DoMS IITM.
+                        </p>
+                    </div>
+        
+                    {/* Feature Cards Grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', maxWidth: '1200px', margin: '0 auto 100px auto' }}>
+                        <div style={{ backgroundColor: '#0A0A0A', padding: '40px 30px', borderRadius: '16px', textAlign: 'center', border: '1px solid #1a1a1a' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#1A1A1A', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto' }}>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width: '20px', height: '20px'}}><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+                            </div>
+                            <h3 style={{ fontSize: '18px', fontWeight: '500', marginBottom: '15px' }}>World-Class Mentorship</h3>
+                            <p style={{ color: '#888', fontSize: '14px', lineHeight: '1.6' }}>Access to IIT Madras faculty, industry experts, and successful entrepreneurs</p>
+                        </div>
+                        <div style={{ backgroundColor: '#0A0A0A', padding: '40px 30px', borderRadius: '16px', textAlign: 'center', border: '1px solid #1a1a1a' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#1A1A1A', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto' }}>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width: '20px', height: '20px'}}><path d="M13.5 2.5a8.5 8.5 0 0 0-11 11l-2 8 8-2a8.5 8.5 0 0 0 11-11c0-3.3-2.7-6-6-6z"></path><path d="m15.5 8.5-3 3"></path><path d="m8.5 15.5-3 3"></path></svg>
+                            </div>
+                            <h3 style={{ fontSize: '18px', fontWeight: '500', marginBottom: '15px' }}>Innovation Ecosystem</h3>
+                            <p style={{ color: '#888', fontSize: '14px', lineHeight: '1.6' }}>Part of India's leading innovation hub with cutting-edge resources</p>
+                        </div>
+                        <div style={{ backgroundColor: '#0A0A0A', padding: '40px 30px', borderRadius: '16px', textAlign: 'center', border: '1px solid #1a1a1a' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#1A1A1A', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto' }}>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width: '20px', height: '20px'}}><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                            </div>
+                            <h3 style={{ fontSize: '18px', fontWeight: '500', marginBottom: '15px' }}>Startup Network</h3>
+                            <p style={{ color: '#888', fontSize: '14px', lineHeight: '1.6' }}>Connect with fellow founders and the broader IIT Madras alumni network</p>
+                        </div>
+                    </div>
+        
+                    {/* Small Stat Cards Grid */}
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap', maxWidth: '1200px', margin: '0 auto 150px auto' }}>
+                        <div style={{ backgroundColor: '#0A0A0A', padding: '30px', borderRadius: '12px', minWidth: '220px', textAlign: 'center', border: '1px solid #1a1a1a', flex: '1' }}>
+                            <div style={{ fontSize: '24px', fontWeight: '400', marginBottom: '8px' }}>IIT Madras</div>
+                            <div style={{ color: '#888', fontSize: '12px' }}>Premier Institution</div>
+                        </div>
+                        <div style={{ backgroundColor: '#0A0A0A', padding: '30px', borderRadius: '12px', minWidth: '220px', textAlign: 'center', border: '1px solid #1a1a1a', flex: '1' }}>
+                            <div style={{ fontSize: '24px', fontWeight: '400', marginBottom: '8px' }}>Nirmaan</div>
+                            <div style={{ color: '#888', fontSize: '12px' }}>Pre-Incubator</div>
+                        </div>
+                        <div style={{ backgroundColor: '#0A0A0A', padding: '30px', borderRadius: '12px', minWidth: '220px', textAlign: 'center', border: '1px solid #1a1a1a', flex: '1' }}>
+                            <div style={{ fontSize: '24px', fontWeight: '400', marginBottom: '8px' }}>2024</div>
+                            <div style={{ color: '#888', fontSize: '12px' }}>Incubation Year</div>
+                        </div>
+                        <div style={{ backgroundColor: '#0A0A0A', padding: '30px', borderRadius: '12px', minWidth: '220px', textAlign: 'center', border: '1px solid #1a1a1a', flex: '1' }}>
+                            <div style={{ fontSize: '24px', fontWeight: '400', marginBottom: '8px' }}>Innovation</div>
+                            <div style={{ color: '#888', fontSize: '12px' }}>Ecosystem</div>
+                        </div>
+                    </div>
+        
+                    {/* Waitlist Section */}
+                    <div style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto 150px auto' }}>
+                        <div style={{ color: '#888', fontSize: '12px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '20px' }}>Get Early Access</div>
+                        <h2 style={{ fontSize: '42px', fontWeight: '700', marginBottom: '20px' }}>Be first in line.</h2>
+                        <p style={{ color: '#888', fontSize: '16px', lineHeight: '1.6', marginBottom: '40px' }}>
+                            Join our waitlist and get early access to Walford OS before public launch. Built for serious analysts.
+                        </p>
+                        <form style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '20px' }} onSubmit={(e) => e.preventDefault()}>
+                            <input type="email" placeholder="Enter your email" required style={{
+                                width: '100%', padding: '20px', boxSizing: 'border-box',
+                                backgroundColor: '#0A0A0A', border: '1px solid #222', borderRadius: '8px',
+                                color: 'white', fontSize: '16px', outline: 'none'
+                            }} />
+                            <button type="submit" style={{
+                                width: '100%', padding: '20px', boxSizing: 'border-box',
+                                backgroundColor: 'white', color: 'black', border: 'none', borderRadius: '8px',
+                                fontSize: '18px', fontWeight: '600', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px'
+                            }}>
+                                Join Waiting List &rarr;
+                            </button>
+                        </form>
+                        <div style={{ color: '#444', fontSize: '12px' }}>
+                            Incubated at IIT Madras &bull; Backed by CFIL, DLMS, IITM
+                        </div>
+                    </div>
+                    
+                    {/* Footer Section */}
+                    <div style={{ borderTop: '1px solid #111', paddingTop: '80px', paddingBottom: '40px', maxWidth: '1200px', margin: '0 auto' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '40px', marginBottom: '80px' }}>
+                            <div style={{ maxWidth: '400px' }}>
+                                <div style={{ fontSize: '24px', fontWeight: '300', marginBottom: '20px' }}>Walford OS</div>
+                                <p style={{ color: '#888', fontSize: '14px', lineHeight: '1.6', marginBottom: '30px' }}>
+                                    AI-powered financial intelligence platform designed for the world's most sophisticated investment professionals.
+                                </p>
+                                <div style={{ display: 'flex', gap: '15px' }}>
+                                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#1A1A1A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width: '18px', height: '18px'}}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+                                    </div>
+                                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#1A1A1A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width: '18px', height: '18px'}}><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style={{ display: 'flex', gap: '80px', flexWrap: 'wrap' }}>
+                                <div>
+                                    <div style={{ color: '#fff', fontSize: '14px', marginBottom: '20px' }}>Product</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                        <a href="#" style={{ color: '#888', textDecoration: 'none', fontSize: '14px' }}>Dashboard</a>
+                                        <a href="#" style={{ color: '#888', textDecoration: 'none', fontSize: '14px' }}>Features</a>
+                                        <a href="#" style={{ color: '#888', textDecoration: 'none', fontSize: '14px' }}>API</a>
+                                        <a href="#" style={{ color: '#888', textDecoration: 'none', fontSize: '14px' }}>Security</a>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style={{ color: '#fff', fontSize: '14px', marginBottom: '20px' }}>Company</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                        <a href="#" style={{ color: '#888', textDecoration: 'none', fontSize: '14px' }}>About</a>
+                                        <a href="#" style={{ color: '#888', textDecoration: 'none', fontSize: '14px' }}>Careers</a>
+                                        <a href="#" style={{ color: '#888', textDecoration: 'none', fontSize: '14px' }}>Contact</a>
+                                        <a href="#" style={{ color: '#888', textDecoration: 'none', fontSize: '14px' }}>Privacy</a>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style={{ color: '#fff', fontSize: '14px', marginBottom: '20px' }}>Contact</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                        <a href="#" style={{ color: '#888', textDecoration: 'none', fontSize: '14px' }}>office@walfordos.com</a>
+                                        <a href="#" style={{ color: '#888', textDecoration: 'none', fontSize: '14px' }}>hello@walfordos.com</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+        
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', borderTop: '1px solid #111', paddingTop: '30px', paddingBottom: '30px' }}>
+                            <div style={{ color: '#666', fontSize: '12px' }}>&copy; 2024 Walford OS. All rights reserved.</div>
+                            <div style={{ color: '#666', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                Built for the future of finance.
+                                <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width: '18px', height: '18px'}}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            );
+        }
+
         // --- Main App Composer ---
         function App() {
             return (
