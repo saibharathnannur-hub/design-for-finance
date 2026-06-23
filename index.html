@@ -1043,45 +1043,6 @@
             const screenPeak2X = 50 + (peak2X - 50) * graphDynamicScale + graphTranslateX;
             const screenPeak2Y = 50 + (peak2Y - 50) * graphDynamicScale + graphTranslateY;
 
-            const tickerRows = useMemo(() => {
-                const baseSymbols = [
-                    'S&P 500', 'Nasdaq', 'B500', 'US 10 Yr', 'Crude Oil', 'Gold', 'BTC/USD', 'EUR/USD', 'NIFTY 50', 'VIX',
-                    'FTSE 100', 'DAX', 'Nikkei 225', 'Hang Seng', 'Shanghai', 'ASX 200', 'TSX', 'CAC 40', 'Euro Stoxx 50', 'Russell 2000',
-                    'Silver', 'Copper', 'Natural Gas', 'Wheat', 'Corn', 'Soybeans', 'Coffee', 'Sugar', 'Cotton', 'Cocoa',
-                    'USD/JPY', 'GBP/USD', 'USD/CHF', 'AUD/USD', 'USD/CAD', 'NZD/USD', 'EUR/GBP', 'EUR/JPY', 'GBP/JPY', 'ETH/USD'
-                ];
-                const currencies = ['₹', '$', '€', '£'];
-                
-                const generateItems = () => {
-                    const shuffled = [...baseSymbols].sort(() => Math.random() - 0.5);
-                    return shuffled.map((name, i) => ({
-                        name,
-                        val: (Math.random() * 10000 + 1000).toFixed(2),
-                        pct: (Math.random() * 2).toFixed(2),
-                        isDown: i % 2 === 0,
-                        currency: currencies[Math.floor(Math.random() * currencies.length)]
-                    }));
-                };
-
-                const rows = [];
-                const numRows = 8; // Dense 8 rows
-                const positions = ['8%', '20%', '32%', '44%', '56%', '68%', '80%', '92%'];
-                
-                for (let i = 0; i < numRows; i++) {
-                    const dir = i % 2 === 0 ? -1 : 1;
-                    const items = generateItems();
-                    
-                    rows.push({
-                        top: positions[i],
-                        dir,
-                        // Duplicate array to allow seamless 50% translation loop
-                        items: [...items, ...items]
-                    });
-                }
-                
-                return rows;
-            }, []);
-
             return (
                 <div ref={sectionRef} style={{ height: '250vh', position: 'relative' }}>
                     <div style={{
@@ -1133,36 +1094,6 @@
                                 )}
                             </div>
                         </div>
-
-                        {/* Background Continuous Ticker Bars */}
-                        {tickerRows.map((row, index) => {
-                            // Fade in at the very start as hero zooms out
-                            const rowOpacity = Math.min(0.15, progress * 1.5);
-                            
-                            const animName = row.dir === -1 ? 'sweepLeft' : 'sweepRight';
-                            const animDuration = 30 + (index % 4) * 10; // Variable speeds: 30s, 40s, 50s, 60s
-
-                            return (
-                                <div className="ticker-bar" key={index} style={{ 
-                                    top: row.top,
-                                    animation: `${animName} ${animDuration}s linear infinite`,
-                                    opacity: rowOpacity
-                                }}>
-                                    {row.items.map((item, i) => (
-                                        <React.Fragment key={i}>
-                                            <div className="ticker-pill">
-                                                <span>{item.name}</span>
-                                                <span className="ticker-pill-val">{item.val}</span>
-                                                <span style={{ color: item.isDown ? '#ff4a4a' : '#66BB6A' }}>
-                                                    {item.isDown ? '▼' : '▲'} {item.pct}%
-                                                </span>
-                                            </div>
-                                            <div className="currency-symbol">{item.currency}</div>
-                                        </React.Fragment>
-                                    ))}
-                                </div>
-                            );
-                        })}
 
                         {/* Foreground Growing Graph */}
                         <div style={{ 
