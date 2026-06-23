@@ -594,20 +594,22 @@
                             borderBottom: '1px solid #1a222c',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'space-between',
                             padding: '0 5%',
-                            zIndex: 150
+                            zIndex: 150,
+                            position: 'relative'
                         }}>
                             <div style={{
+                                position: 'absolute', left: '5%',
                                 color: 'white', fontSize: '28px', fontWeight: 'bold', 
-                                opacity: splitPct > 5 ? 1 : 0.3, transition: 'opacity 0.3s',
+                                opacity: splitPct > 50 ? 1 : 0, transition: 'opacity 0.3s',
                                 textTransform: 'uppercase', letterSpacing: '2px'
                             }}>
                                 Before: Generic
                             </div>
                             <div style={{
+                                position: 'absolute', left: '5%',
                                 color: '#66BB6A', fontSize: '28px', fontWeight: 'bold', 
-                                opacity: splitPct < 95 ? 1 : 0.3, transition: 'opacity 0.3s',
+                                opacity: splitPct <= 50 ? 1 : 0, transition: 'opacity 0.3s',
                                 textTransform: 'uppercase', letterSpacing: '2px'
                             }}>
                                 After: with WalfordOS
