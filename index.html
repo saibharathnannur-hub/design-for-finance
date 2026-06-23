@@ -887,6 +887,8 @@ window.onerror = function(message, source, lineno, colno, error) {
 
             return (
                 <div style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden', backgroundColor: '#000' }}>
+                    {/* Faint World Map Background */}
+                    <div className="map-bg" />
                     
                     {/* Logo that fades when drawn on */}
                     <div className="logo-container" style={{ opacity: 1, transition: 'opacity 0.5s' }}>
