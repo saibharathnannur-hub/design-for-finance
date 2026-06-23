@@ -599,6 +599,27 @@
                             <BloombergUI data={MARKET_DATA} />
                         </div>
 
+                        {/* Floating Headings */}
+                        <div style={{
+                            position: 'absolute', top: '50%', left: '25%', transform: 'translate(-50%, -50%)',
+                            background: 'rgba(0,0,0,0.6)', color: 'white', padding: '16px 32px',
+                            borderRadius: '40px', fontSize: '24px', fontWeight: 'bold', zIndex: 50,
+                            backdropFilter: 'blur(8px)', opacity: splitPct > 5 ? 1 : 0, transition: 'opacity 0.3s',
+                            boxShadow: '0 8px 24px rgba(0,0,0,0.3)'
+                        }}>
+                            Before: Generic
+                        </div>
+                        <div style={{
+                            position: 'absolute', top: '50%', right: '25%', transform: 'translate(50%, -50%)',
+                            background: 'rgba(102, 187, 106, 0.15)', color: '#66BB6A', padding: '16px 32px',
+                            borderRadius: '40px', fontSize: '24px', fontWeight: 'bold', zIndex: 50,
+                            border: '1px solid rgba(102, 187, 106, 0.3)',
+                            backdropFilter: 'blur(8px)', opacity: splitPct < 95 ? 1 : 0, transition: 'opacity 0.3s',
+                            boxShadow: '0 8px 24px rgba(0,0,0,0.3)'
+                        }}>
+                            After: with WalfordOS
+                        </div>
+
                         {/* Slider Vertical Bar & Thumb */}
                         {progress > 0 && progress < 1 && (
                             <div style={{ 
