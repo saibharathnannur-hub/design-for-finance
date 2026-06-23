@@ -673,23 +673,6 @@ window.onerror = function(message, source, lineno, colno, error) {
 
         // --- Original Interactive Graph adapted as Hero Transition Section ---
         function HeroTransitionSection() {
-            const sectionRef = useRef(null);
-            const [progress, setProgress] = useState(0);
-
-            useEffect(() => {
-                const handleScroll = () => {
-                    if (!sectionRef.current) return;
-                    const rect = sectionRef.current.getBoundingClientRect();
-                    const scrollDistance = rect.height - window.innerHeight;
-                    let currentProgress = -rect.top / scrollDistance;
-                    currentProgress = Math.max(0, Math.min(1, currentProgress));
-                    setProgress(currentProgress);
-                };
-                window.addEventListener('scroll', handleScroll);
-                handleScroll();
-                return () => window.removeEventListener('scroll', handleScroll);
-            }, []);
-
             const canvasRef = useRef(null);
             const [netTotal, setNetTotal] = useState(0);
             const valuesRef = useRef(new Array(NUM_BARS).fill(0));
@@ -795,7 +778,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                 const canvas = canvasRef.current;
                 const updateSize = () => {
                     canvas.width = window.innerWidth;
-                    canvas.height = window.innerHeight; // Still 100vh perfectly
+                    canvas.height = window.innerHeight;
                     draw();
                 };
                 window.addEventListener('resize', updateSize);
@@ -808,7 +791,6 @@ window.onerror = function(message, source, lineno, colno, error) {
                 const canvas = canvasRef.current;
                 if (!canvas) return;
                 
-                // Get mouse pos relative to canvas to support scrolling correctly
                 const rect = canvas.getBoundingClientRect();
                 const mouseX = e.clientX - rect.left;
                 const mouseY = e.clientY - rect.top;
@@ -851,8 +833,8 @@ window.onerror = function(message, source, lineno, colno, error) {
                     const endBar = Math.min(NUM_BARS - 1, Math.floor((end.x / canvas.width) * NUM_BARS));
                     if (endBar >= startBar) {
                         for (let i = startBar; i <= endBar; i++) {
-                            const progress = startBar === endBar ? 1 : (i - startBar) / (endBar - startBar);
-                            const exactY = start.y + (end.y - start.y) * progress;
+                            const p = startBar === endBar ? 1 : (i - startBar) / (endBar - startBar);
+                            const exactY = start.y + (end.y - start.y) * p;
                             if (Math.abs(exactY) > 2) valuesRef.current[i] = exactY * staticNoise[i];
                             else valuesRef.current[i] = exactY;
                         }
@@ -878,7 +860,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                         }
                         const newTotal = valuesRef.current.reduce((sum, val) => sum + val, 0);
                         setNetTotal(newTotal); draw();
-                        if (allZero) { clearInterval(animRef.current); animRef.current = null; isDrawingRef.current = false; zigZagRef.current = null; }
+                        if (allZero) { clearInterval(animRef.current); animRef.current = null; isDrawingRef.current = false; zigZagRef.current = null; setInteracted(false); }
                     }, 16);
                 }, 800); 
             };
@@ -889,324 +871,54 @@ window.onerror = function(message, source, lineno, colno, error) {
             const displayValue = Math.abs(Math.round(netTotal * 5));
             const color = netTotal >= 0 ? '#52B974' : '#E24B46';
 
-            // Animation values based on progress
-            const graphScale = 1 - (progress * 0.8); // zoom out from 1 to 0.2
-            const graphOpacity = Math.max(0, 1 - (progress * 2)); // Smooth crossfade over scrolling
-            const quickFadeOpacity = Math.max(0, 1 - (progress * 20)); // Instantly fade out UI text elements
-
-            const growingGraphPointsArray = useMemo(() => {
-                const keyframes = [
-                    {x: 0, y: 90},
-                    {x: 15, y: 70},
-                    {x: 30, y: 40}, // Peak 1
-                    {x: 40, y: 65}, // Valley 1
-                    {x: 50, y: 55},
-                    {x: 60, y: 75}, // Valley 2
-                    {x: 70, y: 20}, // Peak 2 (Massive)
-                    {x: 85, y: 60}, // Valley 3
-                    {x: 100, y: 5}  // Final Top
-                ];
-                let pts = [];
-                for (let x = 0; x <= 100; x += 1) {
-                    let i = 0;
-                    while (i < keyframes.length - 1 && keyframes[i+1].x < x) i++;
-                    let p1 = keyframes[i];
-                    let p2 = keyframes[i+1] || p1;
-                    
-                    let segmentProgress = (x - p1.x) / (p2.x - p1.x || 1);
-                    // Smooth easing for a beautiful curve
-                    let ease = 0.5 - Math.cos(segmentProgress * Math.PI) / 2;
-                    let y = p1.y + (p2.y - p1.y) * ease;
-                    
-                    // Micro-noise for organic feel
-                    y += (Math.random() - 0.5) * 4;
-                    pts.push({x, y});
-                }
-                return pts;
-            }, []);
-            const growingGraphPoints = growingGraphPointsArray.map(p => `${p.x},${p.y}`).join(' ');
-
-            // Complex Piecewise Narrative Logic
-            let graphDrawProgress = 0;
-            if (progress <= 0.1) {
-                graphDrawProgress = 0;
-            } else if (progress <= 0.25) {
-                // Grow 1
-                graphDrawProgress = ((progress - 0.1) / 0.15) * 0.3;
-            } else if (progress <= 0.45) {
-                // Pause 1
-                graphDrawProgress = 0.3;
-            } else if (progress <= 0.6) {
-                // Grow 2
-                graphDrawProgress = 0.3 + ((progress - 0.45) / 0.15) * 0.4;
-            } else if (progress <= 0.85) {
-                // Pause 2
-                graphDrawProgress = 0.7;
-            } else {
-                // Final Spike
-                graphDrawProgress = 0.7 + ((progress - 0.85) / 0.15) * 0.3;
-            }
-            
-            const tipX = graphDrawProgress * 100;
-            let tipY = 0;
-            let tipAngle = 0;
-            let activeGraphPointsString = "";
-
-            if (growingGraphPointsArray.length > 0) {
-                const floorX = Math.floor(tipX);
-                const ceilX = Math.ceil(tipX);
-                if (floorX === ceilX) {
-                    tipY = growingGraphPointsArray[floorX]?.y || 0;
-                } else {
-                    const p1 = growingGraphPointsArray[floorX];
-                    const p2 = growingGraphPointsArray[ceilX];
-                    if (p1 && p2) {
-                        tipY = p1.y + (p2.y - p1.y) * (tipX - floorX);
-                    }
-                }
-
-                // Generate active path string sliced exactly at tipX
-                const activePoints = growingGraphPointsArray.filter(p => p.x <= tipX);
-                if (activePoints.length > 0 && activePoints[activePoints.length - 1].x !== tipX) {
-                    activePoints.push({ x: tipX, y: tipY });
-                }
-                activeGraphPointsString = activePoints.map(p => `${p.x},${p.y}`).join(' ');
-
-                // Calculate exact tangent angle of the curve at this X-coordinate
-                const angleFloor = Math.max(0, Math.floor(tipX) - 1);
-                const angleCeil = Math.min(100, Math.ceil(tipX) + 1);
-                const p1 = growingGraphPointsArray[angleFloor];
-                const p2 = growingGraphPointsArray[angleCeil];
-                if (p1 && p2 && p2.x !== p1.x) {
-                    // Adjust dx/dy to physical screen pixels so angle is visually correct
-                    const dx = (p2.x - p1.x) * (window.innerWidth / 100);
-                    const dy = (p2.y - p1.y) * (window.innerHeight / 100);
-                    tipAngle = Math.atan2(dy, dx) * (180 / Math.PI);
-                }
-            }
-
-            // Cinematic Zoom, Pan & Dim Logic
-            let graphDynamicScale = 1.0;
-            let graphDynamicOpacity = 1.0;
-            let graphTranslateX = 0;
-            let graphTranslateY = 0;
-            
-            let text1Opacity = 0;
-            let text2Opacity = 0;
-
-            const peak1X = 30;
-            const peak1Y = growingGraphPointsArray[30].y;
-            const peak2X = 70;
-            const peak2Y = growingGraphPointsArray[70].y;
-
-            // Pause 1 zoom & text (Peak at 30%)
-            if (progress > 0.25 && progress < 0.45) {
-                let p = 0;
-                if (progress < 0.3) {
-                    p = (progress - 0.25) / 0.05;
-                    text1Opacity = p; 
-                } else if (progress < 0.4) {
-                    p = 1;
-                    text1Opacity = 1;
-                } else {
-                    p = 1 - ((progress - 0.4) / 0.05);
-                    text1Opacity = p; 
-                }
-                
-                graphDynamicScale = 1.0 + (p * 0.6); // Zoom to 1.6
-                graphDynamicOpacity = 1.0 - (p * 0.7); // Dim to 0.3
-                
-                // Pan camera to move peak to the absolute center (50, 50)
-                graphTranslateX = (50 - peak1X) * 1.6 * p;
-                graphTranslateY = (50 - peak1Y) * 1.6 * p;
-            }
-
-            // Pause 2 zoom & text (Peak at 70%)
-            if (progress > 0.6 && progress < 0.85) {
-                let p = 0;
-                if (progress < 0.65) {
-                    p = (progress - 0.6) / 0.05;
-                    text2Opacity = p;
-                } else if (progress < 0.8) {
-                    p = 1;
-                    text2Opacity = 1;
-                } else {
-                    p = 1 - ((progress - 0.8) / 0.05);
-                    text2Opacity = p;
-                }
-
-                graphDynamicScale = 1.0 + (p * 0.6);
-                graphDynamicOpacity = 1.0 - (p * 0.7);
-                
-                // Pan camera to move peak to the absolute center (50, 50)
-                graphTranslateX = (50 - peak2X) * 1.6 * p;
-                graphTranslateY = (50 - peak2Y) * 1.6 * p;
-            }
-
-            // Calculate the exact screen coordinates of the peaks as they pan and zoom
-            const screenPeak1X = 50 + (peak1X - 50) * graphDynamicScale + graphTranslateX;
-            const screenPeak1Y = 50 + (peak1Y - 50) * graphDynamicScale + graphTranslateY;
-
-            const screenPeak2X = 50 + (peak2X - 50) * graphDynamicScale + graphTranslateX;
-            const screenPeak2Y = 50 + (peak2Y - 50) * graphDynamicScale + graphTranslateY;
-
             return (
-                <div ref={sectionRef} style={{ height: '250vh', position: 'relative' }}>
-                    <div style={{
-                        position: 'sticky',
-                        top: 0,
-                        height: '100vh',
-                        overflow: 'hidden',
-                        backgroundColor: '#000',
-                        pointerEvents: progress > 0.8 ? 'none' : 'auto'
-                    }}>
-                        {/* Interactive Graph Layer */}
-                        <div style={{
-                            width: '100%', height: '100%',
-                            transform: `scale(${graphScale})`,
-                            transformOrigin: 'center center',
-                            opacity: graphOpacity,
-                            willChange: 'transform, opacity',
-                            pointerEvents: progress > 0.05 ? 'none' : 'auto'
-                        }}>
-                            <div className="hero-section" style={{ position: 'absolute', top: 0, left: 0, height: '100%', width: '100%' }}>
-                                <div className="map-bg"></div>
-                                <canvas className="hero-canvas" ref={canvasRef} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} />
-                                
-                                <div className="blur-overlay"></div>
-                                <div className="center-boundary"></div>
+                <div style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden', backgroundColor: '#000' }}>
+                    
+                    {/* Logo that fades when drawn on */}
+                    <div className="logo-container" style={{ opacity: interacted ? 0 : 1, transition: 'opacity 0.5s' }}>
+                        <div className="logo-text">Walford OS</div>
+                    </div>
 
-                                <div className="logo-container" style={{ opacity: quickFadeOpacity }}>
-                                    <div className="logo-text">WalfordOS</div>
-                                </div>
-                                
-                                <header className="top-nav" style={{ opacity: quickFadeOpacity }}>
-                                    <div className="nav-links">
-                                        <a>ABOUT US</a>
-                                        <a>DASHBOARD</a>
-                                        <a>FEATURES</a>
-                                        <a>FINANCIAL MODELS</a>
-                                        <a>CONTACT</a>
-                                    </div>
-                                    <button className="nav-btn">Get Started</button>
-                                </header>
-                                
-                                <div className="stats" style={{ opacity: quickFadeOpacity }}>
-                                    <div className="stats-label">Net Unrealized P&L</div>
-                                    <div className="stats-value" style={{ color: color }}>{sign}${displayValue.toLocaleString()}</div>
-                                </div>
+                    {/* Base Interactive Canvas */}
+                    <canvas 
+                        ref={canvasRef}
+                        onMouseMove={handleMouseMove}
+                        onMouseLeave={handleMouseLeave}
+                        style={{
+                            display: 'block',
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            cursor: 'crosshair',
+                            zIndex: 1,
+                        }}
+                    />
 
-                                {!interacted && (
-                                    <div className="instruction" style={{ opacity: quickFadeOpacity }}>Draw the market dynamically with your cursor</div>
-                                )}
+                    {/* UI Overlay Elements */}
+                    <div style={{ pointerEvents: 'none' }}>
+                        <div className="top-nav" style={{ pointerEvents: 'auto' }}>
+                            <div className="nav-links">
+                                <a>Terminal</a>
+                                <a>Research</a>
+                                <a>Risk</a>
+                                <a>Portfolios</a>
+                                <a>Markets</a>
+                            </div>
+                            <button className="nav-btn">Request Access</button>
+                        </div>
+
+                        <div className="stats">
+                            <div className="stats-label">Live Global P&L</div>
+                            <div className="stats-value" style={{color}}>
+                                {sign}{displayValue.toLocaleString()}
                             </div>
                         </div>
 
-                        {/* Foreground Growing Graph */}
-                        <div style={{ 
-                            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', 
-                            pointerEvents: 'none', zIndex: 5,
-                            transform: `translate(${graphTranslateX}%, ${graphTranslateY}%) scale(${graphDynamicScale})`,
-                            transformOrigin: 'center center',
-                            opacity: graphDynamicOpacity,
-                            willChange: 'transform, opacity'
-                        }}>
-                            <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ width: '100%', height: '100%' }}>
-                                <g>
-                                    {/* Outer Glow */}
-                                    <polyline 
-                                        points={activeGraphPointsString} 
-                                        fill="none" 
-                                        stroke="#66BB6A" 
-                                        strokeWidth="1"
-                                        opacity="0.05"
-                                        filter="blur(1px)"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                    {/* Inner Glow */}
-                                    <polyline 
-                                        points={activeGraphPointsString} 
-                                        fill="none" 
-                                        stroke="#66BB6A" 
-                                        strokeWidth="0.8"
-                                        opacity="0.15"
-                                        filter="blur(1.5px)"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                    
-                                    {/* Main Sharp Line */}
-                                    <polyline 
-                                        points={activeGraphPointsString} 
-                                        fill="none" 
-                                        stroke="#66BB6A" 
-                                        strokeWidth="0.8"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                </g>
-                            </svg>
-
-                            {/* Simple Path Pointer */}
-                            {graphDrawProgress > 0 && graphDrawProgress < 1 && (
-                                <div style={{
-                                    position: 'absolute',
-                                    left: `${tipX}%`,
-                                    top: `${tipY}%`,
-                                    width: '8px',
-                                    height: '8px',
-                                    backgroundColor: '#FFF',
-                                    borderRadius: '50%',
-                                    transform: 'translate(-50%, -50%)',
-                                    boxShadow: '0 0 15px 5px rgba(102, 187, 106, 0.4), 0 0 8px 2px rgba(102, 187, 106, 0.8)',
-                                    zIndex: 10
-                                    /* CRITICAL: No CSS transition! This ensures the dot instantly tracks the path without lagging or 'teleporting' when scrolling fast. */
-                                }} />
-                            )}
+                        <div className="instruction" style={{ opacity: interacted ? 0 : 1 }}>
+                            Draw anywhere to simulate market data
                         </div>
-
-                        {/* Story Text Checkpoint 1 (Anchored above the panning Peak 1) */}
-                        <div style={{
-                            position: 'absolute', top: `${screenPeak1Y}%`, left: `${screenPeak1X}%`, 
-                            transform: `translate(-50%, -100%) translateY(-30px)`,
-                            opacity: text1Opacity, pointerEvents: 'none', zIndex: 10,
-                            willChange: 'opacity, top, left'
-                        }}>
-                            <div style={{ textAlign: 'center', width: '800px', transform: `translateY(${20 - text1Opacity*20}px)`, transition: 'transform 0.1s' }}>
-                                <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '20px', fontWeight: 600 }}>AI-Powered Equity Research</div>
-                                <h1 style={{ fontSize: '4.5rem', fontWeight: 'bold', lineHeight: '1.1', margin: '0 0 30px 0', color: 'white' }}>
-                                    One Dashboard.<br/>
-                                    Replace Everything.
-                                </h1>
-                                <p style={{ color: 'white', fontSize: '1.2rem' }}>Replace 6 screens, multiple tools, and 2 interns with one powerful AI</p>
-                            </div>
-                        </div>
-
-                        {/* Story Text Checkpoint 2 (Anchored above the panning Peak 2) */}
-                        <div style={{
-                            position: 'absolute', top: `${screenPeak2Y}%`, left: `${screenPeak2X}%`, 
-                            transform: `translate(-50%, -100%) translateY(-30px)`,
-                            opacity: text2Opacity, pointerEvents: 'none', zIndex: 10,
-                            willChange: 'opacity, top, left'
-                        }}>
-                            <div style={{ textAlign: 'center', width: '800px', transform: `translateY(${20 - text2Opacity*20}px)`, transition: 'transform 0.1s' }}>
-                                <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '20px', fontWeight: 600 }}>What We Built</div>
-                                <h2 style={{ color: 'white', fontSize: '3.5rem', fontWeight: 'bold', lineHeight: '1.1', margin: '0 0 30px 0' }}>
-                                    One platform that replaces everything.
-                                </h2>
-                                <p style={{ color: 'white', fontSize: '1.1rem', lineHeight: '1.6', marginBottom: '40px' }}>
-                                    Walford OS consolidates portfolio tracking, quantitative research, risk management and market intelligence into a single AI-powered dashboard. No more switching between tools, tabs and interns.
-                                </p>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', alignItems: 'center' }}>
-                                    <div style={{ color: 'white', fontSize: '1.1rem' }}>Real-time portfolio snapshot with live P&L tracking</div>
-                                    <div style={{ color: 'white', fontSize: '1.1rem' }}>AI-powered research across 500+ instruments</div>
-                                    <div style={{ color: 'white', fontSize: '1.1rem' }}>Institutional-grade risk metrics at a glance</div>
-                                    <div style={{ color: 'white', fontSize: '1.1rem' }}>Built for equity research analysts and PMS managers</div>
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
                 </div>
             );
