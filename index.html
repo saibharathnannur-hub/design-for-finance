@@ -1122,10 +1122,9 @@ window.onerror = function(message, source, lineno, colno, error) {
 
             const activeGraphPointsString = activePoints.map(p => `${p.x},${p.y}`).join(' ');
             
-            // The text 'ABOUT US' starts on the left and shifts slightly or just fades in
-            // When progress > 0.1, the text fades in.
-            const textOpacity = Math.min(1, progress * 3);
-            const textX = 10 + (progress * 5); // Shifts slightly right as you move cursor
+            // The text 'ABOUT US' starts on the left and is always visible
+            const textOpacity = 1;
+            const textX = 10; // Fixed position
             
             return (
                 <div 
@@ -1168,7 +1167,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                         position: 'absolute',
                         top: '55%',
                         left: `${textX}%`,
-                        opacity: Math.max(0, (progress - 0.3) * 2),
+                        opacity: 1,
                         color: '#A0A5B0',
                         fontSize: '1.2rem',
                         maxWidth: '400px',
