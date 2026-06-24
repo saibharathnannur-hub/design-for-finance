@@ -833,9 +833,8 @@ window.onerror = function(message, source, lineno, colno, error) {
                 if (!containerRef.current || !topLayerRef.current || !sliderRef.current) return;
                 const rect = containerRef.current.getBoundingClientRect();
                 const x = e.clientX - rect.left;
-                // Add a small buffer so it doesn't go completely off-screen
                 let pct = (x / rect.width) * 100;
-                pct = Math.max(0.1, Math.min(99.9, pct));
+                pct = Math.max(0, Math.min(100, pct));
                 
                 // Direct DOM manipulation for buttery smooth 60fps performance!
                 topLayerRef.current.style.clipPath = `polygon(0 0, ${pct}% 0, ${pct}% 100%, 0 100%)`;
@@ -938,6 +937,9 @@ window.onerror = function(message, source, lineno, colno, error) {
                         </div>
                     </div>
                 </div>
+                    <div style={{ textAlign: 'center', marginTop: '20px', color: '#8A92A6', fontSize: '12px', letterSpacing: '2px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                        <span>&larr;</span> SLIDE TO COMPARE <span>&rarr;</span>
+                    </div>
                 </div>
             );
         }
