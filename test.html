@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.3/babel.min.js"></script>
+</head>
+<body>
+    <pre id="output"></pre>
+    <script>
+        fetch('index.html').then(r => r.text()).then(html => {
+            const start = html.indexOf('<script type="text/babel">');
+            const end = html.lastIndexOf('</script' + '>'); // Avoid breaking the script tag
+            if (start !== -1 && end !== -1) {
+                const code = html.substring(start + 26, end);
+                try {
+                    const result = Babel.transform(code, { presets: ['react'] });
+                    document.getElementById('output').textContent = "Success! No syntax errors.";
+                } catch (e) {
+                    document.getElementById('output').textContent = e.message + '\n' + e.stack;
+                }
+            } else {
+                document.getElementById('output').textContent = "Could not find script block";
+            }
+        });
+    </script>
+</body>
+</html>
