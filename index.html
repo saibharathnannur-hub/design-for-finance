@@ -1082,6 +1082,24 @@ window.onerror = function(message, source, lineno, colno, error) {
             const [progress, setProgress] = React.useState(0);
             
             const lastMouseRef = React.useRef({ x: 0, time: 0, v: 0 });
+            
+            const isVisibleRef = React.useRef(false);
+
+            // Visibility observer
+            React.useEffect(() => {
+                const observer = new IntersectionObserver(
+                    ([entry]) => {
+                        isVisibleRef.current = entry.isIntersecting;
+                    },
+                    { threshold: 0.3 } // 30% visible to trigger
+                );
+                
+                if (containerRef.current) {
+                    observer.observe(containerRef.current);
+                }
+                
+                return () => observer.disconnect();
+            }, []);
 
             // Lerp effect
             React.useEffect(() => {
@@ -1101,6 +1119,8 @@ window.onerror = function(message, source, lineno, colno, error) {
             // Keyboard navigation effect
             React.useEffect(() => {
                 const handleKeyDown = (e) => {
+                    if (!isVisibleRef.current) return; // Only work when this section is visible
+                    
                     if (e.key === 'ArrowRight') {
                         setTargetProgress(prev => {
                             if (prev < 0.2) return 0.333; 
