@@ -1,0 +1,269 @@
+function HeroTransitionSection() {
+            const canvasRef = useRef(null);
+            const [netTotal, setNetTotal] = useState(0);
+            const valuesRef = useRef(new Array(NUM_BARS).fill(0));
+            const timerRef = useRef(null);
+            const animRef = useRef(null);
+            const lastPosRef = useRef({ x: null, y: null });
+            
+            const staticNoise = useMemo(() => Array.from({length: NUM_BARS}, () => Math.random() * 0.3 + 0.85), []);
+            
+            const isDrawingRef = useRef(false);
+            const zigZagRef = useRef(null);
+            const hasCrossedRef = useRef(false);
+            const [interacted, setInteracted] = useState(false);
+
+            const draw = () => {
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                const width = canvas.width;
+                const height = canvas.height;
+                const baseline = height / 2;
+                const barWidth = width / NUM_BARS;
+
+                ctx.clearRect(0, 0, width, height);
+
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                for (let x = 0; x <= width; x += 80) { ctx.moveTo(x, 0); ctx.lineTo(x, height); }
+                for (let y = 0; y <= height; y += 80) { ctx.moveTo(0, y); ctx.lineTo(width, y); }
+                ctx.stroke();
+
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(0, baseline); ctx.lineTo(width, baseline);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.strokeStyle = 'rgba(107, 203, 222, 0.7)';
+                ctx.lineWidth = 1.5;
+                for (let i = 0; i < NUM_BARS; i++) {
+                    let sum = 0, count = 0;
+                    for (let j = Math.max(0, i - 5); j <= i; j++) { sum += valuesRef.current[j]; count++; }
+                    const y = baseline - (sum / count);
+                    const x = i * barWidth + barWidth/2;
+                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.strokeStyle = 'rgba(160, 165, 176, 0.4)';
+                ctx.lineWidth = 1.5;
+                for (let i = 0; i < NUM_BARS; i++) {
+                    let sum = 0, count = 0;
+                    for (let j = Math.max(0, i - 15); j <= i; j++) { sum += valuesRef.current[j]; count++; }
+                    const y = baseline - (sum / count);
+                    const x = i * barWidth + barWidth/2;
+                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+
+                const MIN_BODY = 2; 
+
+                for (let i = 0; i < NUM_BARS; i++) {
+                    const closeVal = valuesRef.current[i];
+                    const openVal = i > 0 ? valuesRef.current[i-1] : closeVal;
+                    
+                    if (Math.abs(closeVal) < 0.5 && Math.abs(openVal) < 0.5) continue;
+                    
+                    const x = i * barWidth;
+                    const bodyWidth = Math.max(2, barWidth * 0.5); 
+                    const bodyX = x + (barWidth - bodyWidth) / 2;
+
+                    const isGreen = closeVal >= openVal;
+                    const color = isGreen ? '#52B974' : '#E24B46';
+                    
+                    const yOpen = baseline - openVal;
+                    const yClose = baseline - closeVal;
+                    
+                    const topY = Math.min(yOpen, yClose);
+                    const bottomY = Math.max(yOpen, yClose);
+                    const bodyHeight = Math.max(MIN_BODY, bottomY - topY);
+
+                    const noiseVal = staticNoise[i]; 
+                    const wickTopExtension = (noiseVal * 40) % 20;
+                    const wickBottomExtension = (noiseVal * 80) % 20;
+
+                    const wickHigh = topY - wickTopExtension;
+                    const wickLow = bottomY + wickBottomExtension;
+
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = Math.max(1, bodyWidth * 0.15);
+                    ctx.beginPath();
+                    ctx.moveTo(x + barWidth/2, wickHigh); ctx.lineTo(x + barWidth/2, wickLow);
+                    ctx.stroke();
+
+                    ctx.fillStyle = color;
+                    ctx.fillRect(bodyX, topY, bodyWidth, bodyHeight);
+                }
+            };
+
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                const updateSize = () => {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                    draw();
+                };
+                window.addEventListener('resize', updateSize);
+                updateSize();
+                return () => window.removeEventListener('resize', updateSize);
+            }, []);
+
+            const handleMouseMove = (e) => {
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+                
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                const baseline = canvas.height / 2;
+                const targetY = baseline - mouseY;
+
+                if (!hasCrossedRef.current) {
+                    if (lastPosRef.current.y !== null) {
+                        const lastTargetY = baseline - lastPosRef.current.y;
+                        if ((lastTargetY > 0 && targetY <= 0) || (lastTargetY < 0 && targetY >= 0)) {
+                            hasCrossedRef.current = true;
+                        }
+                    }
+                    if (!hasCrossedRef.current) {
+                        lastPosRef.current = { x: mouseX, y: mouseY };
+                        return;
+                    }
+                }
+
+                if (!interacted) setInteracted(true);
+
+                if (animRef.current) { clearInterval(animRef.current); animRef.current = null; }
+
+                if (!isDrawingRef.current) {
+                    isDrawingRef.current = true;
+                    zigZagRef.current = { anchors: [{ x: mouseX, y: targetY }], currentPeak: { x: mouseX, y: targetY }, isLookingForHigh: targetY >= 0 };
+                    lastPosRef.current = { x: mouseX, y: mouseY };
+                    return;
+                }
+
+                const lastX = lastPosRef.current.x;
+
+                if (lastX !== null && mouseX < lastX) { lastPosRef.current = { x: mouseX, y: mouseY }; return; }
+
+                let zz = zigZagRef.current;
+                let lastAnchor = zz.anchors[zz.anchors.length - 1];
+                const THRESHOLD = (canvas.height / 2) * 0.08; 
+
+                if (zz.isLookingForHigh) {
+                    if (targetY > zz.currentPeak.y) zz.currentPeak = { x: mouseX, y: targetY };
+                    else if (zz.currentPeak.y - targetY > THRESHOLD) {
+                        zz.anchors.push(zz.currentPeak); lastAnchor = zz.currentPeak; zz.isLookingForHigh = false; zz.currentPeak = { x: mouseX, y: targetY };
+                    }
+                } else {
+                    if (targetY < zz.currentPeak.y) zz.currentPeak = { x: mouseX, y: targetY };
+                    else if (targetY - zz.currentPeak.y > THRESHOLD) {
+                        zz.anchors.push(zz.currentPeak); lastAnchor = zz.currentPeak; zz.isLookingForHigh = true; zz.currentPeak = { x: mouseX, y: targetY };
+                    }
+                }
+
+                const drawSegment = (start, end) => {
+                    const startBar = Math.max(0, Math.floor((start.x / canvas.width) * NUM_BARS));
+                    const endBar = Math.min(NUM_BARS - 1, Math.floor((end.x / canvas.width) * NUM_BARS));
+                    if (endBar >= startBar) {
+                        for (let i = startBar; i <= endBar; i++) {
+                            const p = startBar === endBar ? 1 : (i - startBar) / (endBar - startBar);
+                            const exactY = start.y + (end.y - start.y) * p;
+                            if (Math.abs(exactY) > 2) valuesRef.current[i] = exactY * staticNoise[i];
+                            else valuesRef.current[i] = exactY;
+                        }
+                    }
+                };
+
+                drawSegment(lastAnchor, zz.currentPeak);
+                drawSegment(zz.currentPeak, { x: mouseX, y: targetY });
+
+                lastPosRef.current = { x: mouseX, y: mouseY };
+                
+                const total = valuesRef.current.reduce((sum, val) => sum + val, 0);
+                setNetTotal(total);
+                draw();
+
+                clearTimeout(timerRef.current);
+                timerRef.current = setTimeout(() => {
+                    animRef.current = setInterval(() => {
+                        let allZero = true;
+                        for (let i = 0; i < NUM_BARS; i++) {
+                            if (Math.abs(valuesRef.current[i]) < 1) valuesRef.current[i] = 0;
+                            else { valuesRef.current[i] *= 0.92; allZero = false; }
+                        }
+                        const newTotal = valuesRef.current.reduce((sum, val) => sum + val, 0);
+                        setNetTotal(newTotal); draw();
+                        if (allZero) { clearInterval(animRef.current); animRef.current = null; isDrawingRef.current = false; zigZagRef.current = null; setInteracted(false); hasCrossedRef.current = false; }
+                    }, 16);
+                }, 800); 
+            };
+
+            const handleMouseLeave = () => lastPosRef.current = { x: null, y: null };
+
+            const sign = netTotal >= 0 ? '+' : '-';
+            const displayValue = Math.abs(Math.round(netTotal * 5));
+            const color = netTotal >= 0 ? '#52B974' : '#E24B46';
+
+            return (
+                <div style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden', backgroundColor: '#000' }}>
+                    {/* Faint World Map Background */}
+                    <div className="map-bg" />
+                    
+                    {/* Logo that fades when drawn on */}
+                    <div className="logo-container" style={{ opacity: 1, transition: 'opacity 0.5s' }}>
+                        <div className="logo-text">Walford OS</div>
+                    </div>
+
+                    {/* Base Interactive Canvas */}
+                    <canvas 
+                        ref={canvasRef}
+                        onMouseMove={handleMouseMove}
+                        onMouseLeave={handleMouseLeave}
+                        style={{
+                            display: 'block',
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            cursor: 'crosshair',
+                            zIndex: 1,
+                        }}
+                    />
+
+                    {/* UI Overlay Elements */}
+                    <div style={{ pointerEvents: 'none' }}>
+                        <div className="top-nav" style={{ pointerEvents: 'auto' }}>
+                            <div className="nav-links">
+                                <a>Terminal</a>
+                                <a>Research</a>
+                                <a>Risk</a>
+                                <a>Portfolios</a>
+                                <a>Markets</a>
+                            </div>
+                            <button className="nav-btn">Request Access</button>
+                        </div>
+
+                        <div className="stats">
+                            <div className="stats-label">Live Global P&L</div>
+                            <div className="stats-value" style={{color}}>
+                                {sign}{displayValue.toLocaleString()}
+                            </div>
+                        </div>
+
+                        <div className="instruction" style={{ opacity: 1 }}>
+                            Draw anywhere to simulate market data
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        
