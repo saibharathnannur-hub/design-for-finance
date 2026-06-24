@@ -825,17 +825,21 @@ window.onerror = function(message, source, lineno, colno, error) {
         
         function ScrollTransitionSection() {
             const containerRef = React.useRef(null);
-            const [splitPct, setSplitPct] = React.useState(50);
+            const topLayerRef = React.useRef(null);
+            const sliderRef = React.useRef(null);
             const [isHovered, setIsHovered] = React.useState(false);
 
             const handleMouseMove = (e) => {
-                if (!containerRef.current) return;
+                if (!containerRef.current || !topLayerRef.current || !sliderRef.current) return;
                 const rect = containerRef.current.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 // Add a small buffer so it doesn't go completely off-screen
                 let pct = (x / rect.width) * 100;
                 pct = Math.max(0.1, Math.min(99.9, pct));
-                setSplitPct(pct);
+                
+                // Direct DOM manipulation for buttery smooth 60fps performance!
+                topLayerRef.current.style.clipPath = `polygon(0 0, ${pct}% 0, ${pct}% 100%, 0 100%)`;
+                sliderRef.current.style.left = `${pct}%`;
             };
 
             return (
@@ -844,10 +848,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                     style={{ height: '100vh', width: '100vw', position: 'relative', overflow: 'hidden', cursor: isHovered ? 'ew-resize' : 'default' }}
                     onMouseMove={handleMouseMove}
                     onMouseEnter={() => setIsHovered(true)}
-                    onMouseLeave={() => {
-                        setIsHovered(false);
-                        setSplitPct(50); // Optional: snap back to center, or leave where it was. Let's leave it.
-                    }}
+                    onMouseLeave={() => setIsHovered(false)}
                 >
                     {/* Base Layer: Walford OS (Right side) */}
                     <div style={{
@@ -869,9 +870,9 @@ window.onerror = function(message, source, lineno, colno, error) {
                     </div>
                     
                     {/* Top Layer: Bloomberg (Left side, clipped by the slider) */}
-                    <div style={{
+                    <div ref={topLayerRef} style={{
                         position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-                        clipPath: `polygon(0 0, ${splitPct}% 0, ${splitPct}% 100%, 0 100%)`,
+                        clipPath: 'polygon(0 0, 50% 0, 50% 100%, 0 100%)',
                         willChange: 'clip-path',
                         display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff'
                     }}>
@@ -890,13 +891,13 @@ window.onerror = function(message, source, lineno, colno, error) {
                     </div>
 
                     {/* Slider Vertical Bar & Thumb */}
-                    <div style={{ 
+                    <div ref={sliderRef} style={{ 
                         position: 'absolute', 
                         top: 0, 
                         bottom: 0, 
                         width: '2px', 
                         background: '#ffffff', 
-                        left: `${splitPct}%`,
+                        left: '50%',
                         zIndex: 100, 
                         pointerEvents: 'none', 
                         boxShadow: '0 0 15px rgba(0,0,0,0.8)' 
