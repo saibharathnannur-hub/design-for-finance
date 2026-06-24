@@ -1077,38 +1077,50 @@ window.onerror = function(message, source, lineno, colno, error) {
         // --- Main App Composer ---
         function AboutUsSection() {
             const containerRef = React.useRef(null);
+            
+            // For smooth gliding
+            const [targetProgress, setTargetProgress] = React.useState(0);
             const [progress, setProgress] = React.useState(0);
 
-            // Hardcoded structural points for the mountain climbing graph based on user sketch
+            // Lerp effect for buttery smooth camera
+            React.useEffect(() => {
+                let animationFrameId;
+                const lerp = () => {
+                    setProgress(prev => {
+                        const diff = targetProgress - prev;
+                        if (Math.abs(diff) < 0.001) return targetProgress;
+                        return prev + diff * 0.08; // 8% interpolation per frame for smooth but responsive feel
+                    });
+                    animationFrameId = requestAnimationFrame(lerp);
+                };
+                lerp();
+                return () => cancelAnimationFrame(animationFrameId);
+            }, [targetProgress]);
+
+            // We compress the entire journey to 120 SVG units to make it tight.
+            // Peak 3 is at 100.
             const keyPoints = [
                 {x: 0, y: 95},
-                {x: 10, y: 88, isPeak: true, id: 0}, // ABOUT US
-                {x: 20, y: 85},
-                {x: 40, y: 80},
-                {x: 60, y: 75},
+                {x: 5, y: 90, isPeak: true, id: 0}, // ABOUT US
+                {x: 10, y: 85},
+                {x: 20, y: 80},
                 // Peak 1
-                {x: 80, y: 65, isPeak: true, id: 1}, // PORTFOLIO
-                {x: 90, y: 78}, // Dip
-                {x: 110, y: 55},
-                // Peak 2 (Closer)
-                {x: 130, y: 35, isPeak: true, id: 2}, // SYSTEM OVERVIEW
-                {x: 140, y: 55}, // Sharp dip
-                {x: 160, y: 50},
-                {x: 190, y: 70}, // Deep valley
-                {x: 210, y: 60},
+                {x: 40, y: 65, isPeak: true, id: 1}, // PORTFOLIO
+                {x: 45, y: 78}, // Dip
+                {x: 55, y: 55},
+                // Peak 2 
+                {x: 70, y: 35, isPeak: true, id: 2}, // SYSTEM OVERVIEW
+                {x: 75, y: 55}, // Sharp dip
+                {x: 85, y: 60},
                 // Peak 3
-                {x: 250, y: 15, isPeak: true, id: 3}, // QUANT
-                {x: 265, y: 45}, // Sharp dip
-                {x: 290, y: 35},
-                {x: 320, y: 20},
-                {x: 360, y: 5},
-                {x: 400, y: 20}
+                {x: 100, y: 15, isPeak: true, id: 3}, // QUANT
+                {x: 105, y: 45}, 
+                {x: 120, y: 20}
             ];
 
             const graphPoints = React.useMemo(() => {
                 const points = [];
-                for (let x = 0; x <= 400; x += 1) {
-                    // Interpolate between keyPoints
+                for (let x = 0; x <= 120; x += 0.5) {
                     let p1 = keyPoints[0];
                     let p2 = keyPoints[keyPoints.length - 1];
                     for (let i = 0; i < keyPoints.length - 1; i++) {
@@ -1119,11 +1131,9 @@ window.onerror = function(message, source, lineno, colno, error) {
                         }
                     }
                     const t = (x - p1.x) / (p2.x - p1.x || 1);
-                    // Smooth cosine interpolation
                     const tSmooth = (1 - Math.cos(t * Math.PI)) / 2;
                     const y = p1.y + (p2.y - p1.y) * tSmooth;
                     
-                    // Add minor static noise
                     const noise = (Math.sin(x * 2.5) * 0.5) + (Math.sin(x * 8.3) * 0.2);
                     points.push({ x, y: y + noise });
                 }
@@ -1134,16 +1144,21 @@ window.onerror = function(message, source, lineno, colno, error) {
                 if (!containerRef.current) return;
                 const rect = containerRef.current.getBoundingClientRect();
                 const x = e.clientX - rect.left;
-                // Normalize 0 to 1 based on screen width movement
-                // To explore all 400vw, user must move mouse across the screen.
-                // We'll map mouse position 80% to 100% -> progress 0 to 1
+                
+                // User mapping: starts at 80% mark of the screen
                 let pct = (x - (rect.width * 0.8)) / (rect.width * 0.2);
                 pct = Math.max(0, Math.min(1, pct));
-                setProgress(pct);
+                setTargetProgress(pct);
             };
 
-            const numPoints = Math.max(1, Math.floor(progress * graphPoints.length));
-            const activePoints = graphPoints.slice(0, numPoints);
+            // Calculate active points
+            // We want it to END exactly when Peak 3 center aligns.
+            // Peak 3 is at x=100. Total points max corresponds to x=100.
+            // Graph points array has 241 points (0 to 120 step 0.5).
+            // Index of x=100 is 200.
+            const maxIndex = 200; 
+            const currentIndex = Math.max(1, Math.floor(progress * maxIndex));
+            const activePoints = graphPoints.slice(0, currentIndex);
             
             let tipX = 0;
             let tipY = 50;
@@ -1155,17 +1170,13 @@ window.onerror = function(message, source, lineno, colno, error) {
             const activeGraphPointsString = activePoints.map(p => `${p.x},${p.y}`).join(' ');
 
             // Calculate Camera Transform
-            // We want the tip to roughly be at 30vw from left.
-            let translateX = -((tipX / 400) * 400) + 30; // vw
-            // Clamp so we don't show empty void on left/right edges
-            translateX = Math.min(0, Math.max(-300, translateX));
+            // The graph grows from the 80% mark, so tipX is anchored to 80vw.
+            // Since we use 120 SVG units mapped to 120vw
+            // Let's make 1 SVG unit = 1vw.
+            let translateX = -tipX + 80; 
 
-            // We want the tip to roughly be at 50vh, but let's shift camera based on tipY
-            // tipY is 0-100 (percentage of height).
-            // Default center is 50.
-            let translateY = -(tipY - 50); // vh. If tip is high (y=20), translateY = 30vh (pushes container down)
+            let translateY = -(tipY - 50); 
             
-            // Calculate Zoom based on proximity to peaks
             let zoom = 1;
             const peaks = keyPoints.filter(p => p.isPeak);
             let closestPeakDist = 1000;
@@ -1173,10 +1184,8 @@ window.onerror = function(message, source, lineno, colno, error) {
                 const dist = Math.abs(tipX - p.x);
                 if (dist < closestPeakDist) closestPeakDist = dist;
             }
-            // If within 25 SVG units of a peak, zoom in heavily (max 2.2x)
-            if (closestPeakDist < 25) {
-                const zoomFactor = 1 - (closestPeakDist / 25);
-                // ease-in-out the zoom factor for a smoother camera
+            if (closestPeakDist < 15) {
+                const zoomFactor = 1 - (closestPeakDist / 15);
                 const smoothZoom = zoomFactor * zoomFactor * (3 - 2 * zoomFactor);
                 zoom = 1 + (1.2 * smoothZoom); 
             }
@@ -1187,31 +1196,27 @@ window.onerror = function(message, source, lineno, colno, error) {
                     onMouseMove={handleMouseMove}
                     style={{ position: 'relative', width: '100vw', height: '100vh', backgroundColor: '#000', overflow: 'hidden' }}
                 >
-                    {/* CAMERA CONTAINER (Pans and Zooms) */}
                     <div style={{
                         position: 'absolute',
                         top: 0,
                         left: 0,
-                        width: '400vw',
+                        width: '120vw',
                         height: '100vh',
                         transform: `translate(${translateX}vw, ${translateY}vh) scale(${zoom})`,
-                        transformOrigin: `${(tipX/400) * 100}% ${tipY}%`,
-                        transition: 'transform 0.15s ease-out',
+                        transformOrigin: `${(tipX/120) * 100}% ${tipY}%`,
                         willChange: 'transform'
                     }}>
                     
-                        {/* Background grid */}
                         <div style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: '1px', backgroundColor: 'rgba(255,255,255,0.05)' }} />
-                        {[...Array(16)].map((_, i) => (
+                        {[...Array(6)].map((_, i) => (
                             <div key={i} style={{ position: 'absolute', top: 0, left: `${i * 25}vw`, width: '1px', height: '100%', backgroundColor: 'rgba(255,255,255,0.03)' }} />
                         ))}
 
-                        {/* Growing SVG Graph */}
                         <div style={{ 
                             position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', 
                             pointerEvents: 'none', zIndex: 5
                         }}>
-                            <svg viewBox="0 0 400 100" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+                            <svg viewBox="0 0 120 100" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
                                 <g>
                                     <polyline 
                                         points={activeGraphPointsString} 
@@ -1232,11 +1237,10 @@ window.onerror = function(message, source, lineno, colno, error) {
                                 </g>
                             </svg>
 
-                            {/* Glowing Tip */}
                             {activePoints.length > 0 && (
                                 <div style={{
                                     position: 'absolute',
-                                    left: `${(tipX / 400) * 100}%`,
+                                    left: `${(tipX / 120) * 100}%`,
                                     top: `${tipY}%`,
                                     width: '6px',
                                     height: '6px',
@@ -1252,10 +1256,10 @@ window.onerror = function(message, source, lineno, colno, error) {
                         {/* PEAK 0: ABOUT US */}
                         <div style={{
                             position: 'absolute',
-                            left: `5vw`,
-                            top: `88%`,
+                            left: `${(5/120)*100}%`,
+                            top: `90%`,
                             transform: 'translate(0, -110%)',
-                            opacity: tipX < 25 ? 1 : Math.max(0, 1 - (tipX - 25) / 10),
+                            opacity: tipX < 15 ? 1 : Math.max(0, 1 - (tipX - 15) / 5),
                             transition: 'opacity 0.3s',
                             display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '15px',
                             zIndex: 20,
@@ -1272,10 +1276,10 @@ window.onerror = function(message, source, lineno, colno, error) {
                         {/* PEAK 1 CONTENT */}
                         <div style={{
                             position: 'absolute',
-                            left: `${(80/400)*100}%`,
+                            left: `${(40/120)*100}%`,
                             top: `65%`,
                             transform: 'translate(-50%, -110%)', 
-                            opacity: tipX > 65 ? Math.min(1, (tipX - 65) / 10) : 0,
+                            opacity: tipX > 30 ? Math.min(1, (tipX - 30) / 10) : 0,
                             transition: 'opacity 0.3s',
                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px',
                             zIndex: 20,
@@ -1291,10 +1295,10 @@ window.onerror = function(message, source, lineno, colno, error) {
                         {/* PEAK 2 CONTENT */}
                         <div style={{
                             position: 'absolute',
-                            left: `${(130/400)*100}%`,
+                            left: `${(70/120)*100}%`,
                             top: `35%`,
                             transform: 'translate(-50%, -110%)',
-                            opacity: tipX > 115 ? Math.min(1, (tipX - 115) / 10) : 0,
+                            opacity: tipX > 60 ? Math.min(1, (tipX - 60) / 10) : 0,
                             transition: 'opacity 0.3s',
                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px',
                             zIndex: 20,
@@ -1310,10 +1314,10 @@ window.onerror = function(message, source, lineno, colno, error) {
                         {/* PEAK 3 CONTENT */}
                         <div style={{
                             position: 'absolute',
-                            left: `${(250/400)*100}%`,
+                            left: `${(100/120)*100}%`,
                             top: `15%`,
                             transform: 'translate(-50%, -110%)',
-                            opacity: tipX > 235 ? Math.min(1, (tipX - 235) / 10) : 0,
+                            opacity: tipX > 90 ? Math.min(1, (tipX - 90) / 10) : 0,
                             transition: 'opacity 0.3s',
                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px',
                             zIndex: 20,
