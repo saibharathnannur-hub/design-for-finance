@@ -1261,7 +1261,7 @@ window.onerror = function(message, source, lineno, colno, error) {
             if (closestPeakDist < 30) {
                 const zoomFactor = 1 - (closestPeakDist / 30);
                 const smoothZoom = zoomFactor * zoomFactor * (3 - 2 * zoomFactor);
-                zoom = 1 + (0.85 * smoothZoom); 
+                zoom = 1 + (1.5 * smoothZoom); // Increased from 0.85 to 1.5 for much more zoom
             }
 
             return (
@@ -1277,7 +1277,8 @@ window.onerror = function(message, source, lineno, colno, error) {
                         width: '225vw',
                         height: '100vh',
                         transform: `translate(${translateX}vw, ${translateY}vh) scale(${zoom})`,
-                        transformOrigin: `${(camTipX/225) * 100}% ${camTipY}%`,
+                        // Shift zoom origin 10% higher to perfectly center the text/image instead of the dot
+                        transformOrigin: `${(camTipX/225) * 100}% ${Math.max(0, camTipY - 10)}%`,
                         willChange: 'transform'
                     }}>
                     
@@ -1352,7 +1353,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                             position: 'absolute',
                             left: `${(75/225)*100}%`,
                             top: `65%`,
-                            transform: 'translate(-50%, -110%)', 
+                            transform: 'translate(-50%, -100%)', 
                             opacity: tipX > 60 ? Math.min(1, (tipX - 60) / 15) : 0,
                             transition: 'opacity 0.3s',
                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px',
@@ -1371,7 +1372,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                             position: 'absolute',
                             left: `${(125/225)*100}%`,
                             top: `35%`,
-                            transform: 'translate(-50%, -110%)',
+                            transform: 'translate(-50%, -100%)',
                             opacity: tipX > 110 ? Math.min(1, (tipX - 110) / 15) : 0,
                             transition: 'opacity 0.3s',
                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px',
@@ -1390,7 +1391,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                             position: 'absolute',
                             left: `${(175/225)*100}%`,
                             top: `15%`,
-                            transform: 'translate(-50%, -110%)',
+                            transform: 'translate(-50%, -100%)',
                             opacity: tipX > 160 ? Math.min(1, (tipX - 160) / 15) : 0,
                             transition: 'opacity 0.3s',
                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px',
