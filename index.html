@@ -1082,30 +1082,26 @@ window.onerror = function(message, source, lineno, colno, error) {
             // Hardcoded structural points for the mountain climbing graph based on user sketch
             const keyPoints = [
                 {x: 0, y: 95},
+                {x: 10, y: 88, isPeak: true, id: 0}, // ABOUT US
                 {x: 20, y: 85},
                 {x: 40, y: 80},
                 {x: 60, y: 75},
                 // Peak 1
-                {x: 80, y: 65, isPeak: true, id: 1},
+                {x: 80, y: 65, isPeak: true, id: 1}, // PORTFOLIO
                 {x: 90, y: 78}, // Dip
-                {x: 110, y: 70},
-                {x: 130, y: 55},
-                {x: 150, y: 45},
-                // Peak 2
-                {x: 170, y: 35, isPeak: true, id: 2},
-                {x: 175, y: 55}, // Sharp dip
-                {x: 190, y: 50},
-                {x: 210, y: 45},
-                {x: 230, y: 70}, // Deep valley
-                {x: 250, y: 60},
-                {x: 270, y: 25},
+                {x: 110, y: 55},
+                // Peak 2 (Closer)
+                {x: 130, y: 35, isPeak: true, id: 2}, // SYSTEM OVERVIEW
+                {x: 140, y: 55}, // Sharp dip
+                {x: 160, y: 50},
+                {x: 190, y: 70}, // Deep valley
+                {x: 210, y: 60},
                 // Peak 3
-                {x: 285, y: 15, isPeak: true, id: 3},
-                {x: 295, y: 45}, // Sharp dip
-                {x: 310, y: 35},
-                {x: 330, y: 25},
-                {x: 350, y: 20},
-                {x: 380, y: 5},
+                {x: 250, y: 15, isPeak: true, id: 3}, // QUANT
+                {x: 265, y: 45}, // Sharp dip
+                {x: 290, y: 35},
+                {x: 320, y: 20},
+                {x: 360, y: 5},
                 {x: 400, y: 20}
             ];
 
@@ -1177,10 +1173,12 @@ window.onerror = function(message, source, lineno, colno, error) {
                 const dist = Math.abs(tipX - p.x);
                 if (dist < closestPeakDist) closestPeakDist = dist;
             }
-            // If within 15 SVG units of a peak, zoom in
-            if (closestPeakDist < 15) {
-                const zoomFactor = 1 - (closestPeakDist / 15);
-                zoom = 1 + (0.3 * zoomFactor); // Max zoom 1.3
+            // If within 25 SVG units of a peak, zoom in heavily (max 2.2x)
+            if (closestPeakDist < 25) {
+                const zoomFactor = 1 - (closestPeakDist / 25);
+                // ease-in-out the zoom factor for a smoother camera
+                const smoothZoom = zoomFactor * zoomFactor * (3 - 2 * zoomFactor);
+                zoom = 1 + (1.2 * smoothZoom); 
             }
 
             return (
@@ -1198,7 +1196,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                         height: '100vh',
                         transform: `translate(${translateX}vw, ${translateY}vh) scale(${zoom})`,
                         transformOrigin: `${(tipX/400) * 100}% ${tipY}%`,
-                        transition: 'transform 0.1s ease-out',
+                        transition: 'transform 0.15s ease-out',
                         willChange: 'transform'
                     }}>
                     
@@ -1251,61 +1249,81 @@ window.onerror = function(message, source, lineno, colno, error) {
                             )}
                         </div>
 
+                        {/* PEAK 0: ABOUT US */}
+                        <div style={{
+                            position: 'absolute',
+                            left: `${(10/400)*100}%`,
+                            top: `88%`,
+                            transform: 'translate(-50%, -110%)',
+                            opacity: tipX > 0 ? Math.min(1, tipX / 10) : 0,
+                            transition: 'opacity 0.3s',
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px',
+                            zIndex: 20,
+                            pointerEvents: 'none'
+                        }}>
+                            <div style={{ textAlign: 'center' }}>
+                                <h1 style={{ color: 'white', fontSize: '3rem', margin: '0 0 5px 0', letterSpacing: '2px' }}>ABOUT US</h1>
+                                <p style={{ color: '#A0A5B0', fontSize: '1rem', margin: 0, maxWidth: '400px', lineHeight: '1.5' }}>
+                                    We are building the future of financial intelligence. Moving markets requires precision, speed, and absolute clarity.
+                                </p>
+                            </div>
+                        </div>
+
                         {/* PEAK 1 CONTENT */}
                         <div style={{
                             position: 'absolute',
                             left: `${(80/400)*100}%`,
                             top: `65%`,
-                            transform: 'translate(-50%, -110%)', /* Sit right on top of peak */
-                            opacity: tipX > 60 ? Math.min(1, (tipX - 60) / 15) : 0,
+                            transform: 'translate(-50%, -110%)', 
+                            opacity: tipX > 65 ? Math.min(1, (tipX - 65) / 10) : 0,
                             transition: 'opacity 0.3s',
                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px',
                             zIndex: 20,
                             pointerEvents: 'none'
                         }}>
                             <div style={{ textAlign: 'center' }}>
-                                <h2 style={{ color: 'white', fontSize: '2.5rem', margin: '0 0 5px 0', letterSpacing: '1px' }}>PORTFOLIO ANALYSIS</h2>
-                                <p style={{ color: '#A0A5B0', fontSize: '1.1rem', margin: 0, maxWidth: '350px' }}>Institutional asset management tools.</p>
+                                <h2 style={{ color: 'white', fontSize: '2rem', margin: '0 0 5px 0', letterSpacing: '1px' }}>PORTFOLIO ANALYSIS</h2>
+                                <p style={{ color: '#A0A5B0', fontSize: '0.9rem', margin: 0, maxWidth: '350px' }}>Institutional asset management tools.</p>
                             </div>
-                            <img src="./portfolio.jpeg" alt="Portfolio" style={{ width: '400px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }} />
+                            <img src="./portfolio.jpeg" alt="Portfolio" style={{ width: '300px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }} />
                         </div>
 
                         {/* PEAK 2 CONTENT */}
                         <div style={{
                             position: 'absolute',
-                            left: `${(170/400)*100}%`,
+                            left: `${(130/400)*100}%`,
                             top: `35%`,
                             transform: 'translate(-50%, -110%)',
-                            opacity: tipX > 150 ? Math.min(1, (tipX - 150) / 15) : 0,
+                            opacity: tipX > 115 ? Math.min(1, (tipX - 115) / 10) : 0,
                             transition: 'opacity 0.3s',
                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px',
                             zIndex: 20,
                             pointerEvents: 'none'
                         }}>
                             <div style={{ textAlign: 'center' }}>
-                                <h2 style={{ color: 'white', fontSize: '2.5rem', margin: '0 0 5px 0', letterSpacing: '1px' }}>SYSTEM OVERVIEW</h2>
-                                <p style={{ color: '#A0A5B0', fontSize: '1.1rem', margin: 0, maxWidth: '350px' }}>One unified workspace for the entire team.</p>
+                                <h2 style={{ color: 'white', fontSize: '2rem', margin: '0 0 5px 0', letterSpacing: '1px' }}>SYSTEM OVERVIEW</h2>
+                                <p style={{ color: '#A0A5B0', fontSize: '0.9rem', margin: 0, maxWidth: '350px' }}>One unified workspace for the entire team.</p>
                             </div>
-                            <img src="./system.jpeg" alt="System" style={{ width: '400px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }} />
+                            <img src="./system.jpeg" alt="System" style={{ width: '300px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }} />
                         </div>
 
                         {/* PEAK 3 CONTENT */}
                         <div style={{
                             position: 'absolute',
-                            left: `${(285/400)*100}%`,
+                            left: `${(250/400)*100}%`,
                             top: `15%`,
                             transform: 'translate(-50%, -110%)',
-                            opacity: tipX > 265 ? Math.min(1, (tipX - 265) / 15) : 0,
+                            opacity: tipX > 235 ? Math.min(1, (tipX - 235) / 10) : 0,
                             transition: 'opacity 0.3s',
                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px',
                             zIndex: 20,
                             pointerEvents: 'none'
                         }}>
                             <div style={{ textAlign: 'center' }}>
-                                <h2 style={{ color: 'white', fontSize: '2.5rem', margin: '0 0 5px 0', letterSpacing: '1px' }}>QUANT RESEARCH</h2>
-                                <p style={{ color: '#A0A5B0', fontSize: '1.1rem', margin: 0, maxWidth: '350px' }}>Algorithmic modeling edge.</p>
+                                <h2 style={{ color: 'white', fontSize: '2rem', margin: '0 0 5px 0', letterSpacing: '1px' }}>QUANT RESEARCH</h2>
+                                <p style={{ color: '#A0A5B0', fontSize: '0.9rem', margin: 0, maxWidth: '350px' }}>Algorithmic modeling edge.</p>
                             </div>
-                            <img src="./quant.jpeg" alt="Quant" style={{ width: '400px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }} />
+                            <img src="./quant.jpeg" alt="Quant" style={{ width: '300px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }} />
                         </div>
 
                     </div>
