@@ -1076,107 +1076,144 @@ window.onerror = function(message, source, lineno, colno, error) {
 
         // --- Main App Composer ---
         function AboutUsSection() {
+            const containerRef = React.useRef(null);
             const [progress, setProgress] = React.useState(0);
-            const [hoveredPanel, setHoveredPanel] = React.useState(null);
-            const targetVelocityRef = React.useRef(0);
-            
-            // Generate the massive 400vw graph path
-            const graphPoints = React.useMemo(() => [
-                // Screen 1: 0-100 (ABOUT US)
-                {x: 50, y: 70}, {x: 55, y: 65}, {x: 60, y: 67}, {x: 65, y: 55}, {x: 70, y: 50}, 
-                {x: 75, y: 52}, {x: 80, y: 35}, {x: 85, y: 30}, {x: 90, y: 32}, {x: 95, y: 15}, 
-                {x: 100, y: 12}, 
-                
-                // Screen 2: 100-200 (Dashboard Accordion)
-                {x: 105, y: 14}, {x: 110, y: 30}, {x: 115, y: 40}, {x: 120, y: 60}, 
-                {x: 125, y: 75}, {x: 130, y: 60}, {x: 135, y: 40}, {x: 140, y: 20}, {x: 145, y: 8}, {x: 150, y: 5}, 
-                {x: 155, y: 5}, {x: 160, y: 8}, {x: 165, y: 12}, {x: 170, y: 30}, {x: 180, y: 50}, 
-                {x: 185, y: 80}, {x: 190, y: 90},
-                
-                // Screen 3: 200-300 (System Overview Text & Image)
-                {x: 195, y: 80}, {x: 200, y: 70}, {x: 205, y: 60}, {x: 210, y: 50}, 
-                {x: 215, y: 40}, {x: 220, y: 30}, {x: 225, y: 20}, {x: 230, y: 15}, 
-                {x: 240, y: 10}, {x: 250, y: 8}, {x: 260, y: 15}, {x: 270, y: 30}, 
-                {x: 280, y: 50}, {x: 285, y: 65}, {x: 290, y: 80},
-                
-                // Screen 4: 300-400 (Quant Research Text & Image)
-                {x: 295, y: 70}, {x: 300, y: 50}, {x: 310, y: 35}, {x: 320, y: 25}, 
-                {x: 330, y: 15}, {x: 340, y: 10}, {x: 350, y: 8}, {x: 360, y: 15}, 
-                {x: 370, y: 35}, {x: 380, y: 60}, {x: 385, y: 80}, {x: 390, y: 95}
-            ], []);
 
-            // Edge Panning Logic
-            const handleMouseMove = (e) => {
-                const x = e.clientX;
-                const w = window.innerWidth;
-                
-                // Increase speed slightly since it's 4 screens now
-                if (x > w * 0.75) {
-                    targetVelocityRef.current = 0.003;
-                } else if (x < w * 0.25) {
-                    targetVelocityRef.current = -0.003;
-                } else {
-                    targetVelocityRef.current = 0;
-                }
-            };
+            // Hardcoded structural points for the mountain climbing graph based on user sketch
+            const keyPoints = [
+                {x: 0, y: 95},
+                {x: 20, y: 85},
+                {x: 40, y: 80},
+                {x: 60, y: 75},
+                // Peak 1
+                {x: 80, y: 65, isPeak: true, id: 1},
+                {x: 90, y: 78}, // Dip
+                {x: 110, y: 70},
+                {x: 130, y: 55},
+                {x: 150, y: 45},
+                // Peak 2
+                {x: 170, y: 35, isPeak: true, id: 2},
+                {x: 175, y: 55}, // Sharp dip
+                {x: 190, y: 50},
+                {x: 210, y: 45},
+                {x: 230, y: 70}, // Deep valley
+                {x: 250, y: 60},
+                {x: 270, y: 25},
+                // Peak 3
+                {x: 285, y: 15, isPeak: true, id: 3},
+                {x: 295, y: 45}, // Sharp dip
+                {x: 310, y: 35},
+                {x: 330, y: 25},
+                {x: 350, y: 20},
+                {x: 380, y: 5},
+                {x: 400, y: 20}
+            ];
 
-            React.useEffect(() => {
-                let animationFrame;
-                const loop = () => {
-                    if (targetVelocityRef.current !== 0) {
-                        setProgress(prev => {
-                            let next = prev + targetVelocityRef.current;
-                            if (next > 1) next = 1;
-                            if (next < 0) next = 0;
-                            return next;
-                        });
+            const graphPoints = React.useMemo(() => {
+                const points = [];
+                for (let x = 0; x <= 400; x += 1) {
+                    // Interpolate between keyPoints
+                    let p1 = keyPoints[0];
+                    let p2 = keyPoints[keyPoints.length - 1];
+                    for (let i = 0; i < keyPoints.length - 1; i++) {
+                        if (x >= keyPoints[i].x && x <= keyPoints[i+1].x) {
+                            p1 = keyPoints[i];
+                            p2 = keyPoints[i+1];
+                            break;
+                        }
                     }
-                    animationFrame = requestAnimationFrame(loop);
-                };
-                loop();
-                return () => cancelAnimationFrame(animationFrame);
+                    const t = (x - p1.x) / (p2.x - p1.x || 1);
+                    // Smooth cosine interpolation
+                    const tSmooth = (1 - Math.cos(t * Math.PI)) / 2;
+                    const y = p1.y + (p2.y - p1.y) * tSmooth;
+                    
+                    // Add minor static noise
+                    const noise = (Math.sin(x * 2.5) * 0.5) + (Math.sin(x * 8.3) * 0.2);
+                    points.push({ x, y: y + noise });
+                }
+                return points;
             }, []);
 
-            const visibleCount = Math.max(1, Math.floor(progress * graphPoints.length));
-            const activePoints = graphPoints.slice(0, visibleCount);
+            const handleMouseMove = (e) => {
+                if (!containerRef.current) return;
+                const rect = containerRef.current.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                // Normalize 0 to 1 based on screen width movement
+                // To explore all 400vw, user must move mouse across the screen.
+                // We'll map mouse position 10% to 90% -> progress 0 to 1
+                let pct = (x - (rect.width * 0.1)) / (rect.width * 0.8);
+                pct = Math.max(0, Math.min(1, pct));
+                setProgress(pct);
+            };
+
+            const numPoints = Math.max(1, Math.floor(progress * graphPoints.length));
+            const activePoints = graphPoints.slice(0, numPoints);
             
             let tipX = 0;
-            let tipY = 0;
+            let tipY = 50;
             if (activePoints.length > 0) {
                 tipX = activePoints[activePoints.length - 1].x;
                 tipY = activePoints[activePoints.length - 1].y;
             }
 
             const activeGraphPointsString = activePoints.map(p => `${p.x},${p.y}`).join(' ');
+
+            // Calculate Camera Transform
+            // We want the tip to roughly be at 30vw from left.
+            let translateX = -((tipX / 400) * 400) + 30; // vw
+            // Clamp so we don't show empty void on left/right edges
+            translateX = Math.min(0, Math.max(-300, translateX));
+
+            // We want the tip to roughly be at 50vh, but let's shift camera based on tipY
+            // tipY is 0-100 (percentage of height).
+            // Default center is 50.
+            let translateY = -(tipY - 50); // vh. If tip is high (y=20), translateY = 30vh (pushes container down)
             
+            // Calculate Zoom based on proximity to peaks
+            let zoom = 1;
+            const peaks = keyPoints.filter(p => p.isPeak);
+            let closestPeakDist = 1000;
+            for (let p of peaks) {
+                const dist = Math.abs(tipX - p.x);
+                if (dist < closestPeakDist) closestPeakDist = dist;
+            }
+            // If within 15 SVG units of a peak, zoom in
+            if (closestPeakDist < 15) {
+                const zoomFactor = 1 - (closestPeakDist / 15);
+                zoom = 1 + (0.3 * zoomFactor); // Max zoom 1.3
+            }
+
             return (
                 <div 
+                    ref={containerRef}
                     onMouseMove={handleMouseMove}
                     style={{ position: 'relative', width: '100vw', height: '100vh', backgroundColor: '#000', overflow: 'hidden' }}
                 >
-                    {/* PANNING CONTAINER (400vw wide) */}
+                    {/* CAMERA CONTAINER (Pans and Zooms) */}
                     <div style={{
                         position: 'absolute',
                         top: 0,
                         left: 0,
                         width: '400vw',
                         height: '100vh',
-                        transform: `translateX(${-progress * 300}vw)`,
+                        transform: `translate(${translateX}vw, ${translateY}vh) scale(${zoom})`,
+                        transformOrigin: `${(tipX/400) * 100}% ${tipY}%`,
+                        transition: 'transform 0.1s ease-out',
                         willChange: 'transform'
                     }}>
                     
-                        {/* Background faint grid lines spanning 400vw */}
+                        {/* Background grid */}
                         <div style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: '1px', backgroundColor: 'rgba(255,255,255,0.05)' }} />
                         {[...Array(16)].map((_, i) => (
                             <div key={i} style={{ position: 'absolute', top: 0, left: `${i * 25}vw`, width: '1px', height: '100%', backgroundColor: 'rgba(255,255,255,0.03)' }} />
                         ))}
 
-                        {/* Growing SVG Graph (Spans 400vw) */}
+                        {/* Growing SVG Graph */}
                         <div style={{ 
                             position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', 
                             pointerEvents: 'none', zIndex: 5
                         }}>
-                            <svg viewBox="0 0 400 100" preserveAspectRatio="none" style={{ width: '100%', height: '100%' }}>
+                            <svg viewBox="0 0 400 100" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
                                 <g>
                                     <polyline 
                                         points={activeGraphPointsString} 
@@ -1185,8 +1222,6 @@ window.onerror = function(message, source, lineno, colno, error) {
                                         strokeWidth="0.5"
                                         opacity="0.2"
                                         filter="blur(2px)"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
                                     />
                                     <polyline 
                                         points={activeGraphPointsString} 
@@ -1199,219 +1234,80 @@ window.onerror = function(message, source, lineno, colno, error) {
                                 </g>
                             </svg>
 
-                            {/* Glowing Tip Pointer */}
+                            {/* Glowing Tip */}
                             {activePoints.length > 0 && (
                                 <div style={{
                                     position: 'absolute',
                                     left: `${(tipX / 400) * 100}%`,
                                     top: `${tipY}%`,
-                                    width: '8px',
-                                    height: '8px',
+                                    width: '6px',
+                                    height: '6px',
                                     backgroundColor: '#FFF',
                                     borderRadius: '50%',
                                     transform: 'translate(-50%, -50%)',
-                                    boxShadow: '0 0 25px 10px rgba(82, 185, 116, 0.8), 0 0 10px 4px rgba(82, 185, 116, 1)',
+                                    boxShadow: '0 0 20px 8px rgba(82, 185, 116, 0.8), 0 0 8px 3px rgba(82, 185, 116, 1)',
                                     zIndex: 10
                                 }} />
                             )}
                         </div>
 
-                        {/* SCREEN 1: ABOUT US */}
+                        {/* PEAK 1 CONTENT */}
                         <div style={{
                             position: 'absolute',
-                            top: '40%',
-                            left: '5vw',
-                            transform: 'translateY(-50%)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '20px',
-                            zIndex: 10,
-                            pointerEvents: 'none',
-                        }}>
-                            <h1 style={{ fontSize: '6rem', fontWeight: 'bold', margin: 0, letterSpacing: '-2px', color: '#fff' }}>ABOUT US</h1>
-                            <div style={{ color: '#52B974', fontSize: '2rem', fontWeight: 'bold', letterSpacing: '-1px' }}>>>></div>
-                        </div>
-                        <div style={{
-                            position: 'absolute',
-                            top: '55%',
-                            left: '5vw',
-                            color: '#A0A5B0',
-                            fontSize: '1.2rem',
-                            maxWidth: '400px',
-                            lineHeight: '1.6',
-                            zIndex: 10,
-                            pointerEvents: 'none',
-                        }}>
-                            We are building the future of financial intelligence. Moving markets requires precision, speed, and absolute clarity.
-                        </div>
-                        
-                        {/* SCREEN 2: Dashboard Accordion (Centered at 150vw) */}
-                        <div style={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '150vw',
-                            transform: `translate(-50%, -50%) scale(${Math.min(1, 0.8 + Math.max(0, progress - 0.05) * 1.5)})`,
-                            width: '80vw',
+                            left: `${(80/400)*100}%`,
+                            top: `65%`,
+                            transform: 'translate(-50%, -110%)', /* Sit right on top of peak */
+                            opacity: tipX > 60 ? Math.min(1, (tipX - 60) / 15) : 0,
+                            transition: 'opacity 0.3s',
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px',
                             zIndex: 20,
-                            opacity: Math.min(1, Math.max(0, (progress - 0.05) * 5)),
-                            pointerEvents: progress > 0.2 ? 'auto' : 'none',
+                            pointerEvents: 'none'
                         }}>
-                            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-                                <div style={{ color: '#52B974', fontSize: '12px', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '15px', fontWeight: 600 }}>Built for Professionals</div>
-                                <h2 style={{ fontSize: '3.5rem', fontWeight: 'bold', lineHeight: '1.1', color: 'white', margin: '0 0 20px 0', letterSpacing: '-1px' }}>
-                                    Every tool you need.<br/>
-                                    <span style={{ color: '#A0A5B0', fontSize: '2.5rem' }}>One unified workspace.</span>
-                                </h2>
-                                <p style={{ color: '#A0A5B0', fontSize: '1rem', maxWidth: '800px', margin: '0 auto', lineHeight: '1.6' }}>
-                                    From portfolio tracking to quantitative research — everything your team needs in one place.
-                                </p>
+                            <div style={{ textAlign: 'center' }}>
+                                <h2 style={{ color: 'white', fontSize: '2.5rem', margin: '0 0 5px 0', letterSpacing: '1px' }}>PORTFOLIO ANALYSIS</h2>
+                                <p style={{ color: '#A0A5B0', fontSize: '1.1rem', margin: 0, maxWidth: '350px' }}>Institutional asset management tools.</p>
                             </div>
-
-                            {/* Accordion Images */}
-                            <div 
-                                style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', gap: '15px', width: '100%', height: '350px' }}
-                                onMouseLeave={() => setHoveredPanel(null)}
-                            >
-                                {[
-                                    { src: './portfolio.jpeg', alt: 'Portfolio Analysis', label: 'PORTFOLIO' },
-                                    { src: './system.jpeg', alt: 'System Overview', label: 'SYSTEM' },
-                                    { src: './quant.jpeg', alt: 'Quantitative Research', label: 'QUANT' }
-                                ].map((img, idx) => {
-                                    const isActive = hoveredPanel === idx;
-                                    return (
-                                        <div 
-                                            key={idx}
-                                            onMouseEnter={() => setHoveredPanel(idx)}
-                                            style={{
-                                                position: 'relative', height: '100%', flex: isActive ? '3' : '1',
-                                                transition: 'all 0.5s cubic-bezier(0.25, 1, 0.5, 1)',
-                                                borderRadius: '16px', overflow: 'hidden', border: isActive ? '1px solid #333' : '1px solid #1a222c',
-                                                opacity: hoveredPanel === null ? 0.8 : (isActive ? 1 : 0.4),
-                                                boxShadow: isActive ? '0 20px 50px rgba(0,0,0,0.8)' : 'none',
-                                                cursor: 'pointer', backgroundColor: '#0B111A'
-                                            }}
-                                        >
-                                            <img src={img.src} alt={img.alt} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'left top', display: 'block' }} />
-                                            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px', background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%)', opacity: isActive ? 1 : 0, transition: 'opacity 0.5s', display: 'flex', alignItems: 'flex-end', pointerEvents: 'none', height: '100px' }}>
-                                                <h3 style={{ margin: 0, color: '#fff', fontSize: '1.2rem', letterSpacing: '1.5px' }}>{img.label}</h3>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
+                            <img src="./portfolio.jpeg" alt="Portfolio" style={{ width: '400px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }} />
                         </div>
 
-                        {/* SCREEN 3: SYSTEM OVERVIEW (Centered at 250vw) */}
+                        {/* PEAK 2 CONTENT */}
                         <div style={{
                             position: 'absolute',
-                            top: '50%',
-                            left: '250vw',
-                            transform: `translate(-50%, -50%) scale(${Math.min(1, 0.8 + Math.max(0, progress - 0.35) * 1.5)})`,
-                            width: '85vw',
+                            left: `${(170/400)*100}%`,
+                            top: `35%`,
+                            transform: 'translate(-50%, -110%)',
+                            opacity: tipX > 150 ? Math.min(1, (tipX - 150) / 15) : 0,
+                            transition: 'opacity 0.3s',
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px',
                             zIndex: 20,
-                            opacity: Math.min(1, Math.max(0, (progress - 0.35) * 5)),
-                            pointerEvents: progress > 0.5 ? 'auto' : 'none',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '50px'
+                            pointerEvents: 'none'
                         }}>
-                            {/* Left side: Text */}
-                            <div style={{ flex: '1', paddingRight: '20px' }}>
-                                <div style={{ color: '#52B974', fontSize: '14px', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '20px', fontWeight: 600 }}>WHAT WE BUILT</div>
-                                <h2 style={{ fontSize: '4rem', fontWeight: 'bold', lineHeight: '1.1', color: 'white', margin: '0 0 30px 0', letterSpacing: '-1px' }}>
-                                    One platform that replaces everything.
-                                </h2>
-                                <p style={{ color: '#A0A5B0', fontSize: '1.2rem', lineHeight: '1.6', marginBottom: '40px' }}>
-                                    Walford OS consolidates portfolio tracking, quantitative research, risk management and market intelligence into a single AI-powered dashboard. No more switching between tools, tabs and interns.
-                                </p>
-                                
-                                {/* Bullet points */}
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                    {[
-                                        'Real-time portfolio snapshot with live P&L tracking',
-                                        'AI-powered research across 500+ instruments',
-                                        'Institutional-grade risk metrics at a glance',
-                                        'Built for equity research analysts and PMS managers'
-                                    ].map((point, i) => (
-                                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                            <span style={{ color: '#52B974', fontSize: '1.2rem' }}>{'\u2192'}</span>
-                                            <span style={{ color: '#E2E8F0', fontSize: '1.1rem' }}>{point}</span>
-                                        </div>
-                                    ))}
-                                </div>
+                            <div style={{ textAlign: 'center' }}>
+                                <h2 style={{ color: 'white', fontSize: '2.5rem', margin: '0 0 5px 0', letterSpacing: '1px' }}>SYSTEM OVERVIEW</h2>
+                                <p style={{ color: '#A0A5B0', fontSize: '1.1rem', margin: 0, maxWidth: '350px' }}>One unified workspace for the entire team.</p>
                             </div>
-                            
-                            {/* Right side: Image */}
-                            <div style={{ flex: '1', borderRadius: '16px', overflow: 'hidden', border: '1px solid #1a222c', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
-                                <img src="./system.jpeg" alt="System Overview" style={{ width: '100%', display: 'block' }} />
-                            </div>
+                            <img src="./system.jpeg" alt="System" style={{ width: '400px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }} />
                         </div>
 
-                        {/* SCREEN 4: QUANT RESEARCH (Centered at 350vw) */}
+                        {/* PEAK 3 CONTENT */}
                         <div style={{
                             position: 'absolute',
-                            top: '50%',
-                            left: '350vw',
-                            transform: `translate(-50%, -50%) scale(${Math.min(1, 0.8 + Math.max(0, progress - 0.65) * 1.5)})`,
-                            width: '85vw',
+                            left: `${(285/400)*100}%`,
+                            top: `15%`,
+                            transform: 'translate(-50%, -110%)',
+                            opacity: tipX > 265 ? Math.min(1, (tipX - 265) / 15) : 0,
+                            transition: 'opacity 0.3s',
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px',
                             zIndex: 20,
-                            opacity: Math.min(1, Math.max(0, (progress - 0.65) * 5)),
-                            pointerEvents: progress > 0.8 ? 'auto' : 'none',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '50px'
+                            pointerEvents: 'none'
                         }}>
-                            {/* Left side: Text */}
-                            <div style={{ flex: '1', paddingRight: '20px' }}>
-                                <div style={{ color: '#A0A5B0', fontSize: '14px', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '20px', fontWeight: 600 }}>QUANTITATIVE RESEARCH</div>
-                                <h2 style={{ fontSize: '4rem', fontWeight: 'bold', lineHeight: '1.1', color: 'white', margin: '0 0 30px 0', letterSpacing: '-1px' }}>
-                                    Institutional-grade<br/>backtesting engine.
-                                </h2>
-                                <p style={{ color: '#A0A5B0', fontSize: '1.2rem', lineHeight: '1.6', marginBottom: '40px' }}>
-                                    Run CAPM, APT, Fama-French and momentum strategies against historical data. Validate your thesis with the same infrastructure used by leading hedge funds — without the Bloomberg terminal price tag.
-                                </p>
-                                
-                                {/* Bullet points */}
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                    {[
-                                        'CAPM, APT and Fama-French 3-factor models built in',
-                                        'Backtest any strategy against NSE historical data',
-                                        'Sharpe ratio, drawdown and win rate calculated automatically',
-                                        'Export results directly to client-ready reports'
-                                    ].map((point, i) => (
-                                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                            <span style={{ color: '#fff', fontSize: '1.2rem' }}>{'\u2192'}</span>
-                                            <span style={{ color: '#E2E8F0', fontSize: '1.1rem' }}>{point}</span>
-                                        </div>
-                                    ))}
-                                </div>
+                            <div style={{ textAlign: 'center' }}>
+                                <h2 style={{ color: 'white', fontSize: '2.5rem', margin: '0 0 5px 0', letterSpacing: '1px' }}>QUANT RESEARCH</h2>
+                                <p style={{ color: '#A0A5B0', fontSize: '1.1rem', margin: 0, maxWidth: '350px' }}>Algorithmic modeling edge.</p>
                             </div>
-                            
-                            {/* Right side: Image */}
-                            <div style={{ flex: '1', borderRadius: '16px', overflow: 'hidden', border: '1px solid #1a222c', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
-                                <img src="./quant.jpeg" alt="Quantitative Research" style={{ width: '100%', display: 'block' }} />
-                            </div>
+                            <img src="./quant.jpeg" alt="Quant" style={{ width: '400px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }} />
                         </div>
 
-                    </div>
-                    
-                    {/* Edge interaction hints */}
-                    <div style={{
-                        position: 'absolute',
-                        right: '20px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        color: 'rgba(255,255,255,0.3)',
-                        pointerEvents: 'none',
-                        opacity: progress < 0.95 ? 1 : 0,
-                        transition: 'opacity 0.5s',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: '10px'
-                    }}>
-                        <span style={{ fontSize: '0.8rem', letterSpacing: '2px', writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>PAN RIGHT</span>
-                        <span style={{ fontSize: '1.5rem', animation: 'bounceRight 2s infinite' }}>{'\u2192'}</span>
                     </div>
                 </div>
             );
