@@ -877,8 +877,8 @@ window.onerror = function(message, source, lineno, colno, error) {
                             backgroundColor: '#05080c', borderBottom: '1px solid #1a222c',
                             display: 'flex', alignItems: 'center', padding: '0 5%'
                         }}>
-                            <div style={{ color: '#66BB6A', fontSize: '20px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px' }}>
-                                After {'\u2014'} Walford OS
+                            <div style={{ color: '#66BB6A', fontSize: '20px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', display: 'flex', alignItems: 'center' }}>
+                                After {'\u2014'} Walford OS <span style={{ color: '#52B974', marginLeft: '10px', fontSize: '24px' }}>&rarr;</span>
                             </div>
                         </div>
                         <div style={{ position: 'relative', flexGrow: 1, overflow: 'hidden' }}>
@@ -898,8 +898,8 @@ window.onerror = function(message, source, lineno, colno, error) {
                             backgroundColor: '#000000', borderBottom: '1px solid #333',
                             display: 'flex', alignItems: 'center', padding: '0 5%'
                         }}>
-                            <div style={{ color: 'white', fontSize: '20px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px' }}>
-                                Before {'\u2014'} Bloomberg
+                            <div style={{ color: 'white', fontSize: '20px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', display: 'flex', alignItems: 'center' }}>
+                                <span style={{ color: '#E24B46', marginRight: '10px', fontSize: '24px' }}>&larr;</span> Before {'\u2014'} Bloomberg
                             </div>
                         </div>
                         <div style={{ position: 'relative', flexGrow: 1, overflow: 'hidden' }}>
@@ -1269,7 +1269,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                 camTipY = camPoint.y;
             }
 
-            let translateX = Math.min(20, 50 - camTipX); 
+            let translateX = Math.min(0, 50 - camTipX); 
             let translateY = -(camTipY - 50); 
             
             let zoom = 1;
