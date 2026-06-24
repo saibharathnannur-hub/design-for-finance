@@ -1087,7 +1087,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                     setProgress(prev => {
                         const diff = targetProgress - prev;
                         if (Math.abs(diff) < 0.001) return targetProgress;
-                        return prev + diff * 0.08; 
+                        return prev + diff * 0.05; // 5% lerp for ultra-smooth buttery glide
                     });
                     animationFrameId = requestAnimationFrame(lerp);
                 };
@@ -1095,25 +1095,30 @@ window.onerror = function(message, source, lineno, colno, error) {
                 return () => cancelAnimationFrame(animationFrameId);
             }, [targetProgress]);
 
+            // Expanded to 225 units to ensure perfect geometry for center alignment
             const keyPoints = [
                 {x: 0, y: 95},
-                {x: 5, y: 90, isPeak: true, id: 0}, 
-                {x: 10, y: 85},
-                {x: 20, y: 80},
-                {x: 40, y: 65, isPeak: true, id: 1}, 
-                {x: 45, y: 78}, 
-                {x: 55, y: 55},
-                {x: 70, y: 35, isPeak: true, id: 2}, 
-                {x: 75, y: 55}, 
-                {x: 85, y: 60},
-                {x: 100, y: 15, isPeak: true, id: 3}, 
-                {x: 105, y: 45}, 
-                {x: 120, y: 20}
+                {x: 10, y: 90, isPeak: true, id: 0}, // ABOUT US
+                {x: 20, y: 85},
+                {x: 40, y: 80},
+                // Peak 1
+                {x: 75, y: 65, isPeak: true, id: 1}, // PORTFOLIO
+                {x: 80, y: 78}, // Dip
+                {x: 100, y: 55},
+                // Peak 2 
+                {x: 125, y: 35, isPeak: true, id: 2}, // SYSTEM OVERVIEW
+                {x: 130, y: 55}, // Sharp dip
+                {x: 150, y: 60},
+                // Peak 3
+                {x: 175, y: 15, isPeak: true, id: 3}, // QUANT
+                {x: 185, y: 45}, 
+                {x: 200, y: 25},
+                {x: 225, y: 5}
             ];
 
             const graphPoints = React.useMemo(() => {
                 const points = [];
-                for (let x = 0; x <= 120; x += 0.5) {
+                for (let x = 0; x <= 225; x += 0.5) {
                     let p1 = keyPoints[0];
                     let p2 = keyPoints[keyPoints.length - 1];
                     for (let i = 0; i < keyPoints.length - 1; i++) {
@@ -1138,15 +1143,13 @@ window.onerror = function(message, source, lineno, colno, error) {
                 const rect = containerRef.current.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 
-                // Map mouse starting at 80% and ending slightly before the literal monitor edge 
-                // so the user can easily hit 100% progress.
+                // Map mouse starting at 80% mark, ends slightly before edge
                 let pct = (x - (rect.width * 0.8)) / (rect.width * 0.18);
                 pct = Math.max(0, Math.min(1, pct));
                 setTargetProgress(pct);
             };
 
-            // End exactly when Peak 3 is hit (x=100 -> index 200)
-            const maxIndex = 200; 
+            const maxIndex = graphPoints.length - 1; 
             const currentIndex = Math.max(1, Math.floor(progress * maxIndex));
             const activePoints = graphPoints.slice(0, currentIndex);
             
@@ -1159,24 +1162,35 @@ window.onerror = function(message, source, lineno, colno, error) {
 
             const activeGraphPointsString = activePoints.map(p => `${p.x},${p.y}`).join(' ');
 
-            // Camera panning logic
-            // Math.min(0, ...) ensures the container never pans right (leaving a blank gap on the left).
-            // -tipX + 50 ensures that when the graph tip reaches 100, the container is pushed left by 50vw.
-            // Since the tip is at 100vw relative to the container, it appears perfectly at 50vw (center of screen).
-            let translateX = Math.min(0, -tipX + 50); 
-            let translateY = -(tipY - 50); 
+            // PERFECT GEOMETRY CAMERA:
+            // We lock the camera panning exactly at Peak 3 (x=175) so the line can finish drawing
+            // but the camera completely stops.
+            const camTipX = Math.min(175, tipX);
+            let camTipY = 50;
+            if (activePoints.length > 0) {
+                const camPoint = activePoints.find(p => p.x >= camTipX) || activePoints[activePoints.length - 1];
+                camTipY = camPoint.y;
+            }
+
+            // translateX math: 
+            // - We want the left edge at 0 initially (Math.min(0, ...))
+            // - We want camTipX to be exactly at 50vw on screen (50 - camTipX)
+            let translateX = Math.min(0, 50 - camTipX); 
+            // Center vertically perfectly
+            let translateY = -(camTipY - 50); 
             
+            // Human friendly zoom
             let zoom = 1;
-            const peaks = keyPoints.filter(p => p.isPeak);
+            const peaks = keyPoints.filter(p => p.isPeak && p.id > 0);
             let closestPeakDist = 1000;
             for (let p of peaks) {
-                const dist = Math.abs(tipX - p.x);
+                const dist = Math.abs(camTipX - p.x);
                 if (dist < closestPeakDist) closestPeakDist = dist;
             }
-            if (closestPeakDist < 15) {
-                const zoomFactor = 1 - (closestPeakDist / 15);
+            if (closestPeakDist < 30) {
+                const zoomFactor = 1 - (closestPeakDist / 30);
                 const smoothZoom = zoomFactor * zoomFactor * (3 - 2 * zoomFactor);
-                zoom = 1 + (1.2 * smoothZoom); 
+                zoom = 1 + (0.85 * smoothZoom); // Max 1.85x
             }
 
             return (
@@ -1189,15 +1203,15 @@ window.onerror = function(message, source, lineno, colno, error) {
                         position: 'absolute',
                         top: 0,
                         left: 0,
-                        width: '120vw',
+                        width: '225vw', // Container spans exactly 225vw matching SVG coords
                         height: '100vh',
                         transform: `translate(${translateX}vw, ${translateY}vh) scale(${zoom})`,
-                        transformOrigin: `${(tipX/120) * 100}% ${tipY}%`,
+                        transformOrigin: `${(camTipX/225) * 100}% ${camTipY}%`,
                         willChange: 'transform'
                     }}>
                     
                         <div style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: '1px', backgroundColor: 'rgba(255,255,255,0.05)' }} />
-                        {[...Array(6)].map((_, i) => (
+                        {[...Array(10)].map((_, i) => (
                             <div key={i} style={{ position: 'absolute', top: 0, left: `${i * 25}vw`, width: '1px', height: '100%', backgroundColor: 'rgba(255,255,255,0.03)' }} />
                         ))}
 
@@ -1205,7 +1219,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                             position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', 
                             pointerEvents: 'none', zIndex: 5
                         }}>
-                            <svg viewBox="0 0 120 100" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+                            <svg viewBox="0 0 225 100" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
                                 <g>
                                     <polyline 
                                         points={activeGraphPointsString} 
@@ -1229,7 +1243,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                             {activePoints.length > 0 && (
                                 <div style={{
                                     position: 'absolute',
-                                    left: `${(tipX / 120) * 100}%`,
+                                    left: `${(tipX / 225) * 100}%`,
                                     top: `${tipY}%`,
                                     width: '6px',
                                     height: '6px',
@@ -1248,7 +1262,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                             left: `5vw`,
                             top: `90%`,
                             transform: 'translate(0, -110%)',
-                            opacity: tipX < 15 ? 1 : Math.max(0, 1 - (tipX - 15) / 5),
+                            opacity: tipX < 15 ? 1 : Math.max(0, 1 - (tipX - 15) / 10),
                             transition: 'opacity 0.3s',
                             display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '15px',
                             zIndex: 20,
@@ -1265,10 +1279,10 @@ window.onerror = function(message, source, lineno, colno, error) {
                         {/* PEAK 1 CONTENT */}
                         <div style={{
                             position: 'absolute',
-                            left: `${(40/120)*100}%`,
+                            left: `${(75/225)*100}%`,
                             top: `65%`,
                             transform: 'translate(-50%, -110%)', 
-                            opacity: tipX > 30 ? Math.min(1, (tipX - 30) / 10) : 0,
+                            opacity: tipX > 60 ? Math.min(1, (tipX - 60) / 15) : 0,
                             transition: 'opacity 0.3s',
                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px',
                             zIndex: 20,
@@ -1284,10 +1298,10 @@ window.onerror = function(message, source, lineno, colno, error) {
                         {/* PEAK 2 CONTENT */}
                         <div style={{
                             position: 'absolute',
-                            left: `${(70/120)*100}%`,
+                            left: `${(125/225)*100}%`,
                             top: `35%`,
                             transform: 'translate(-50%, -110%)',
-                            opacity: tipX > 60 ? Math.min(1, (tipX - 60) / 10) : 0,
+                            opacity: tipX > 110 ? Math.min(1, (tipX - 110) / 15) : 0,
                             transition: 'opacity 0.3s',
                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px',
                             zIndex: 20,
@@ -1303,10 +1317,10 @@ window.onerror = function(message, source, lineno, colno, error) {
                         {/* PEAK 3 CONTENT */}
                         <div style={{
                             position: 'absolute',
-                            left: `${(100/120)*100}%`,
+                            left: `${(175/225)*100}%`,
                             top: `15%`,
                             transform: 'translate(-50%, -110%)',
-                            opacity: tipX > 90 ? Math.min(1, (tipX - 90) / 10) : 0,
+                            opacity: tipX > 160 ? Math.min(1, (tipX - 160) / 15) : 0,
                             transition: 'opacity 0.3s',
                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px',
                             zIndex: 20,
