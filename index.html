@@ -843,13 +843,25 @@ window.onerror = function(message, source, lineno, colno, error) {
             };
 
             return (
-                <div 
-                    ref={containerRef} 
-                    style={{ height: '100vh', width: '100vw', position: 'relative', overflow: 'hidden', cursor: isHovered ? 'ew-resize' : 'default' }}
-                    onMouseMove={handleMouseMove}
-                    onMouseEnter={() => setIsHovered(true)}
-                    onMouseLeave={() => setIsHovered(false)}
-                >
+                <div style={{ backgroundColor: '#000', padding: '100px 5vw' }}>
+                    <div 
+                        ref={containerRef} 
+                        style={{ 
+                            height: '80vh', 
+                            width: '100%', 
+                            maxWidth: '1400px',
+                            margin: '0 auto',
+                            position: 'relative', 
+                            overflow: 'hidden', 
+                            cursor: isHovered ? 'ew-resize' : 'default',
+                            border: '1px solid rgba(255,255,255,0.15)',
+                            borderRadius: '16px',
+                            boxShadow: '0 20px 40px rgba(0,0,0,0.6)'
+                        }}
+                        onMouseMove={handleMouseMove}
+                        onMouseEnter={() => setIsHovered(true)}
+                        onMouseLeave={() => setIsHovered(false)}
+                    >
                     {/* Base Layer: Walford OS (Right side) */}
                     <div style={{
                         position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
@@ -920,6 +932,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                             <span style={{color: '#000', fontSize: '24px', fontWeight: 'bold'}}>{'\u2194'}</span>
                         </div>
                     </div>
+                </div>
                 </div>
             );
         }
