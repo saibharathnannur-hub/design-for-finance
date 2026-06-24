@@ -1080,6 +1080,8 @@ window.onerror = function(message, source, lineno, colno, error) {
             
             const [targetProgress, setTargetProgress] = React.useState(0);
             const [progress, setProgress] = React.useState(0);
+            
+            const lastMouseRef = React.useRef({ x: 0, time: 0, v: 0 });
 
             // Lerp effect
             React.useEffect(() => {
@@ -1172,23 +1174,31 @@ window.onerror = function(message, source, lineno, colno, error) {
                 const rect = containerRef.current.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 
+                const now = performance.now();
+                const dt = now - lastMouseRef.current.time;
+                let v = lastMouseRef.current.v;
+                
+                // Calculate cursor velocity
+                if (dt > 0) {
+                    const dx = Math.abs(x - lastMouseRef.current.x);
+                    const currentV = dx / dt;
+                    v = v * 0.7 + currentV * 0.3; // Low-pass filter for smooth velocity
+                }
+                lastMouseRef.current = { x, time: now, v };
+                
                 let rawPct = (x - (rect.width * 0.8)) / (rect.width * 0.18);
                 rawPct = Math.max(0, Math.min(1, rawPct));
                 
-                let pct = 0;
+                let pct = rawPct;
                 
-                if (rawPct < 0.15) {
-                    pct = (rawPct / 0.15) * 0.333; 
-                } else if (rawPct < 0.35) {
-                    pct = 0.333; 
-                } else if (rawPct < 0.50) {
-                    pct = 0.333 + ((rawPct - 0.35) / 0.15) * 0.222; 
-                } else if (rawPct < 0.70) {
-                    pct = 0.555; 
-                } else if (rawPct < 0.85) {
-                    pct = 0.555 + ((rawPct - 0.70) / 0.15) * 0.222; 
-                } else {
-                    pct = 0.777 + ((rawPct - 0.85) / 0.15) * 0.223; 
+                // Velocity-based Magnetic Friction:
+                // If the user's cursor move rate slows down near a peak, we "snap" the progress to that peak.
+                // This creates physical friction that feels natural and can be broken by swiping faster.
+                if (v < 1.0) { // If moving relatively slowly
+                    const snapDist = 0.08; // 8% magnetic snap radius
+                    if (Math.abs(pct - 0.333) < snapDist) pct = 0.333;
+                    else if (Math.abs(pct - 0.555) < snapDist) pct = 0.555;
+                    else if (Math.abs(pct - 0.777) < snapDist) pct = 0.777;
                 }
                 
                 setTargetProgress(pct);
@@ -1306,7 +1316,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                             pointerEvents: 'none'
                         }}>
                             <div style={{ textAlign: 'left' }}>
-                                <h1 style={{ color: 'white', fontSize: '3.5rem', margin: '0 0 5px 0', letterSpacing: '2px' }}>ABOUT US</h1>
+                                <h1 style={{ color: 'white', fontSize: '4.5rem', margin: '0 0 5px 0', letterSpacing: '2px', whiteSpace: 'nowrap' }}>ABOUT WALFORD OS</h1>
                                 <p style={{ color: '#A0A5B0', fontSize: '1.2rem', margin: 0, maxWidth: '450px', lineHeight: '1.5' }}>
                                     We are building the future of financial intelligence. Moving markets requires precision, speed, and absolute clarity.
                                 </p>
