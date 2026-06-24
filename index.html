@@ -1094,6 +1094,7 @@ window.onerror = function(message, source, lineno, colno, error) {
         function AboutUsSection() {
             const [progress, setProgress] = React.useState(0);
             const [unlocked, setUnlocked] = React.useState(false);
+            const [hoveredPanel, setHoveredPanel] = React.useState(null);
             
             // Generate a realistic-looking stock chart path once
             // Starts at x=35 (after "ABOUT US >>>") and goes to x=90
@@ -1326,25 +1327,75 @@ window.onerror = function(message, source, lineno, colno, error) {
                             </p>
                         </div>
 
-                        {/* Images Stack */}
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '80px' }}>
-                            {/* Image 1 Placeholder */}
-                            <div style={{ width: '100%', maxWidth: '1200px', borderRadius: '16px', overflow: 'hidden', border: '1px solid #1a222c', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
-                                <img src="./portfolio.jpeg" alt="Portfolio Analysis" style={{ width: '100%', display: 'block', backgroundColor: '#0B111A', minHeight: '600px', objectFit: 'cover' }} onError={(e) => {e.target.style.display='none'; e.target.nextSibling.style.display='flex';}} />
-                                <div style={{ width: '100%', height: '600px', backgroundColor: '#0B111A', display: 'none', alignItems: 'center', justifyContent: 'center', color: '#555', fontSize: '24px' }}>[Portfolio Analysis Image Placeholder: Add portfolio.jpeg to folder]</div>
-                            </div>
-                            
-                            {/* Image 2 Placeholder */}
-                            <div style={{ width: '100%', maxWidth: '1200px', borderRadius: '16px', overflow: 'hidden', border: '1px solid #1a222c', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
-                                <img src="./quant.jpeg" alt="Quantitative Research" style={{ width: '100%', display: 'block', backgroundColor: '#0B111A', minHeight: '600px', objectFit: 'cover' }} onError={(e) => {e.target.style.display='none'; e.target.nextSibling.style.display='flex';}} />
-                                <div style={{ width: '100%', height: '600px', backgroundColor: '#0B111A', display: 'none', alignItems: 'center', justifyContent: 'center', color: '#555', fontSize: '24px' }}>[Quantitative Research Image Placeholder: Add quant.jpeg to folder]</div>
-                            </div>
-                            
-                            {/* Image 3 Placeholder */}
-                            <div style={{ width: '100%', maxWidth: '1200px', borderRadius: '16px', overflow: 'hidden', border: '1px solid #1a222c', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
-                                <img src="./system.jpeg" alt="System Overview" style={{ width: '100%', display: 'block', backgroundColor: '#0B111A', minHeight: '600px', objectFit: 'cover' }} onError={(e) => {e.target.style.display='none'; e.target.nextSibling.style.display='flex';}} />
-                                <div style={{ width: '100%', height: '600px', backgroundColor: '#0B111A', display: 'none', alignItems: 'center', justifyContent: 'center', color: '#555', fontSize: '24px' }}>[System Overview Image Placeholder: Add system.jpeg to folder]</div>
-                            </div>
+                        {/* Images Stack - Accordion Layout */}
+                        <div 
+                            style={{ 
+                                display: 'flex', 
+                                flexDirection: 'row', 
+                                justifyContent: 'center', 
+                                alignItems: 'center', 
+                                gap: '20px', 
+                                width: '100%', 
+                                maxWidth: '1400px', 
+                                margin: '0 auto',
+                                height: '500px'
+                            }}
+                            onMouseLeave={() => setHoveredPanel(null)}
+                        >
+                            {[
+                                { src: './portfolio.jpeg', alt: 'Portfolio Analysis', label: 'PORTFOLIO ANALYSIS' },
+                                { src: './system.jpeg', alt: 'System Overview', label: 'SYSTEM OVERVIEW' },
+                                { src: './quant.jpeg', alt: 'Quantitative Research', label: 'QUANTITATIVE RESEARCH' }
+                            ].map((img, idx) => {
+                                const isActive = hoveredPanel === idx;
+                                return (
+                                    <div 
+                                        key={idx}
+                                        onMouseEnter={() => setHoveredPanel(idx)}
+                                        style={{
+                                            position: 'relative',
+                                            height: '100%',
+                                            flex: isActive ? '4' : '1',
+                                            transition: 'all 0.6s cubic-bezier(0.25, 1, 0.5, 1)',
+                                            borderRadius: '16px',
+                                            overflow: 'hidden',
+                                            border: '1px solid #1a222c',
+                                            opacity: hoveredPanel === null ? 0.7 : (isActive ? 1 : 0.3),
+                                            boxShadow: isActive ? '0 20px 50px rgba(0,0,0,0.8)' : 'none',
+                                            cursor: 'pointer',
+                                            backgroundColor: '#0B111A'
+                                        }}
+                                    >
+                                        <img 
+                                            src={img.src} 
+                                            alt={img.alt} 
+                                            style={{ 
+                                                width: '100%', 
+                                                height: '100%', 
+                                                objectFit: 'cover', 
+                                                objectPosition: 'left top',
+                                                display: 'block' 
+                                            }} 
+                                        />
+                                        <div style={{
+                                            position: 'absolute',
+                                            bottom: 0, left: 0, right: 0,
+                                            padding: '30px',
+                                            background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)',
+                                            opacity: isActive ? 1 : 0,
+                                            transition: 'opacity 0.5s',
+                                            display: 'flex',
+                                            alignItems: 'flex-end',
+                                            pointerEvents: 'none'
+                                        }}>
+                                            <h3 style={{ margin: 0, color: '#fff', fontSize: '1.5rem', letterSpacing: '2px' }}>{img.label}</h3>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <div style={{ textAlign: 'center', marginTop: '40px', color: '#666', fontSize: '0.9rem', letterSpacing: '2px' }}>
+                            Click any panel to focus
                         </div>
                     </div>
                 </div>
