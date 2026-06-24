@@ -1426,7 +1426,9 @@ window.onerror = function(message, source, lineno, colno, error) {
                             <img src="./quant.jpeg" alt="Quant" style={{ width: '300px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }} />
                         </div>
 
-                        {/* PROGRESS INDICATOR */}
+                    </div>
+
+                        {/* PROGRESS INDICATOR - Now fixed to screen bottom, immune to camera translation and zoom! */}
                         <div style={{
                             position: 'absolute',
                             bottom: '40px',
@@ -1475,8 +1477,6 @@ window.onerror = function(message, source, lineno, colno, error) {
                                 }} />
                             </div>
                         </div>
-
-                    </div>
                 </div>
             );
         }
