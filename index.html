@@ -1081,6 +1081,7 @@ window.onerror = function(message, source, lineno, colno, error) {
             const [targetProgress, setTargetProgress] = React.useState(0);
             const [progress, setProgress] = React.useState(0);
 
+            // Lerp effect
             React.useEffect(() => {
                 let animationFrameId;
                 const lerp = () => {
@@ -1094,6 +1095,28 @@ window.onerror = function(message, source, lineno, colno, error) {
                 lerp();
                 return () => cancelAnimationFrame(animationFrameId);
             }, [targetProgress]);
+
+            // Keyboard navigation effect
+            React.useEffect(() => {
+                const handleKeyDown = (e) => {
+                    if (e.key === 'ArrowRight') {
+                        setTargetProgress(prev => {
+                            if (prev < 0.2) return 0.333; 
+                            if (prev < 0.45) return 0.555; 
+                            if (prev < 0.65) return 0.777; 
+                            return 0.777; 
+                        });
+                    } else if (e.key === 'ArrowLeft') {
+                        setTargetProgress(prev => {
+                            if (prev > 0.7) return 0.555; 
+                            if (prev > 0.45) return 0.333; 
+                            return 0; 
+                        });
+                    }
+                };
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, []);
 
             const keyPoints = [
                 {x: 0, y: 95},
@@ -1152,21 +1175,20 @@ window.onerror = function(message, source, lineno, colno, error) {
                 let rawPct = (x - (rect.width * 0.8)) / (rect.width * 0.18);
                 rawPct = Math.max(0, Math.min(1, rawPct));
                 
-                // Spatial plateau mapping to create "friction" deadzones
                 let pct = 0;
                 
                 if (rawPct < 0.15) {
-                    pct = (rawPct / 0.15) * 0.333; // To Peak 1
+                    pct = (rawPct / 0.15) * 0.333; 
                 } else if (rawPct < 0.35) {
-                    pct = 0.333; // Locked at Peak 1
+                    pct = 0.333; 
                 } else if (rawPct < 0.50) {
-                    pct = 0.333 + ((rawPct - 0.35) / 0.15) * 0.222; // To Peak 2
+                    pct = 0.333 + ((rawPct - 0.35) / 0.15) * 0.222; 
                 } else if (rawPct < 0.70) {
-                    pct = 0.555; // Locked at Peak 2
+                    pct = 0.555; 
                 } else if (rawPct < 0.85) {
-                    pct = 0.555 + ((rawPct - 0.70) / 0.15) * 0.222; // To Peak 3
+                    pct = 0.555 + ((rawPct - 0.70) / 0.15) * 0.222; 
                 } else {
-                    pct = 0.777 + ((rawPct - 0.85) / 0.15) * 0.223; // Graph tail drawing
+                    pct = 0.777 + ((rawPct - 0.85) / 0.15) * 0.223; 
                 }
                 
                 setTargetProgress(pct);
