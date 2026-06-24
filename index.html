@@ -833,8 +833,9 @@ window.onerror = function(message, source, lineno, colno, error) {
                 if (!containerRef.current || !topLayerRef.current || !sliderRef.current) return;
                 const rect = containerRef.current.getBoundingClientRect();
                 const x = e.clientX - rect.left;
-                let pct = (x / rect.width) * 100;
-                pct = Math.max(0, Math.min(100, pct));
+                // Expand the range so the slider can physically leave the frame at the edges
+                let pct = (x / rect.width) * 110 - 5;
+                pct = Math.max(-5, Math.min(105, pct));
                 
                 // Direct DOM manipulation for buttery smooth 60fps performance!
                 topLayerRef.current.style.clipPath = `polygon(0 0, ${pct}% 0, ${pct}% 100%, 0 100%)`;
