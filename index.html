@@ -810,7 +810,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                         <div className="stats">
                             <div className="stats-label">Live Global P&L</div>
                             <div className="stats-value" style={{color}}>
-                                {sign}{displayValue.toLocaleString()}
+                                {sign === '+' ? '↑' : '↓'} {sign}{displayValue.toLocaleString()}
                             </div>
                         </div>
 
@@ -1162,7 +1162,7 @@ window.onerror = function(message, source, lineno, colno, error) {
             }, []);
 
             const keyPoints = [
-                {x: 0, y: 95},
+                {x: 0, y: 80},
                 {x: 10, y: 90, isPeak: true, id: 0}, 
                 {x: 15, y: 93},
                 {x: 25, y: 80},
