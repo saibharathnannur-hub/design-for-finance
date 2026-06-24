@@ -1136,8 +1136,8 @@ window.onerror = function(message, source, lineno, colno, error) {
                 const x = e.clientX - rect.left;
                 // Normalize 0 to 1 based on screen width movement
                 // To explore all 400vw, user must move mouse across the screen.
-                // We'll map mouse position 50% to 100% -> progress 0 to 1
-                let pct = (x - (rect.width * 0.5)) / (rect.width * 0.5);
+                // We'll map mouse position 80% to 100% -> progress 0 to 1
+                let pct = (x - (rect.width * 0.8)) / (rect.width * 0.2);
                 pct = Math.max(0, Math.min(1, pct));
                 setProgress(pct);
             };
