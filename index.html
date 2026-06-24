@@ -1096,16 +1096,29 @@ window.onerror = function(message, source, lineno, colno, error) {
             const [hoveredPanel, setHoveredPanel] = React.useState(null);
             const targetVelocityRef = React.useRef(0);
             
-            // Generate the massive 200vw graph path
+            // Generate the massive 400vw graph path
             const graphPoints = React.useMemo(() => [
+                // Screen 1: 0-100 (ABOUT US)
                 {x: 50, y: 70}, {x: 55, y: 65}, {x: 60, y: 67}, {x: 65, y: 55}, {x: 70, y: 50}, 
                 {x: 75, y: 52}, {x: 80, y: 35}, {x: 85, y: 30}, {x: 90, y: 32}, {x: 95, y: 15}, 
-                {x: 100, y: 12}, {x: 105, y: 14}, {x: 110, y: 30}, {x: 115, y: 40}, {x: 120, y: 60}, 
-                {x: 125, y: 75}, 
-                // Entering Dashboard Zone (100 to 200)
-                {x: 130, y: 60}, {x: 135, y: 40}, {x: 140, y: 20}, {x: 145, y: 8}, {x: 150, y: 5}, 
+                {x: 100, y: 12}, 
+                
+                // Screen 2: 100-200 (Dashboard Accordion)
+                {x: 105, y: 14}, {x: 110, y: 30}, {x: 115, y: 40}, {x: 120, y: 60}, 
+                {x: 125, y: 75}, {x: 130, y: 60}, {x: 135, y: 40}, {x: 140, y: 20}, {x: 145, y: 8}, {x: 150, y: 5}, 
                 {x: 155, y: 5}, {x: 160, y: 8}, {x: 165, y: 12}, {x: 170, y: 30}, {x: 180, y: 50}, 
-                {x: 185, y: 80}, {x: 190, y: 95}
+                {x: 185, y: 80}, {x: 190, y: 90},
+                
+                // Screen 3: 200-300 (System Overview Text & Image)
+                {x: 195, y: 80}, {x: 200, y: 70}, {x: 205, y: 60}, {x: 210, y: 50}, 
+                {x: 215, y: 40}, {x: 220, y: 30}, {x: 225, y: 20}, {x: 230, y: 15}, 
+                {x: 240, y: 10}, {x: 250, y: 8}, {x: 260, y: 15}, {x: 270, y: 30}, 
+                {x: 280, y: 50}, {x: 285, y: 65}, {x: 290, y: 80},
+                
+                // Screen 4: 300-400 (Quant Research Text & Image)
+                {x: 295, y: 70}, {x: 300, y: 50}, {x: 310, y: 35}, {x: 320, y: 25}, 
+                {x: 330, y: 15}, {x: 340, y: 10}, {x: 350, y: 8}, {x: 360, y: 15}, 
+                {x: 370, y: 35}, {x: 380, y: 60}, {x: 385, y: 80}, {x: 390, y: 95}
             ], []);
 
             // Edge Panning Logic
@@ -1113,16 +1126,12 @@ window.onerror = function(message, source, lineno, colno, error) {
                 const x = e.clientX;
                 const w = window.innerWidth;
                 
-                // If mouse is in right 25% of screen, pan right
+                // Increase speed slightly since it's 4 screens now
                 if (x > w * 0.75) {
-                    targetVelocityRef.current = 0.006;
-                } 
-                // If mouse is in left 25% of screen, pan left
-                else if (x < w * 0.25) {
-                    targetVelocityRef.current = -0.006;
-                } 
-                // Neutral zone in the middle
-                else {
+                    targetVelocityRef.current = 0.003;
+                } else if (x < w * 0.25) {
+                    targetVelocityRef.current = -0.003;
+                } else {
                     targetVelocityRef.current = 0;
                 }
             };
@@ -1144,7 +1153,6 @@ window.onerror = function(message, source, lineno, colno, error) {
                 return () => cancelAnimationFrame(animationFrame);
             }, []);
 
-            // Calculate visible points based on progress
             const visibleCount = Math.max(1, Math.floor(progress * graphPoints.length));
             const activePoints = graphPoints.slice(0, visibleCount);
             
@@ -1162,60 +1170,29 @@ window.onerror = function(message, source, lineno, colno, error) {
                     onMouseMove={handleMouseMove}
                     style={{ position: 'relative', width: '100vw', height: '100vh', backgroundColor: '#000', overflow: 'hidden' }}
                 >
-                    {/* PANNING CONTAINER (200vw wide) */}
+                    {/* PANNING CONTAINER (400vw wide) */}
                     <div style={{
                         position: 'absolute',
                         top: 0,
                         left: 0,
-                        width: '200vw',
+                        width: '400vw',
                         height: '100vh',
-                        transform: `translateX(${-progress * 100}vw)`,
+                        transform: `translateX(${-progress * 300}vw)`,
                         willChange: 'transform'
                     }}>
                     
-                        {/* Background faint grid lines spanning 200vw */}
+                        {/* Background faint grid lines spanning 400vw */}
                         <div style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: '1px', backgroundColor: 'rgba(255,255,255,0.05)' }} />
-                        <div style={{ position: 'absolute', top: 0, left: '25vw', width: '1px', height: '100%', backgroundColor: 'rgba(255,255,255,0.03)' }} />
-                        <div style={{ position: 'absolute', top: 0, left: '75vw', width: '1px', height: '100%', backgroundColor: 'rgba(255,255,255,0.03)' }} />
-                        <div style={{ position: 'absolute', top: 0, left: '125vw', width: '1px', height: '100%', backgroundColor: 'rgba(255,255,255,0.03)' }} />
-                        <div style={{ position: 'absolute', top: 0, left: '175vw', width: '1px', height: '100%', backgroundColor: 'rgba(255,255,255,0.03)' }} />
+                        {[...Array(16)].map((_, i) => (
+                            <div key={i} style={{ position: 'absolute', top: 0, left: `${i * 25}vw`, width: '1px', height: '100%', backgroundColor: 'rgba(255,255,255,0.03)' }} />
+                        ))}
 
-                        {/* ABOUT US TEXT (Screen 1) */}
-                        <div style={{
-                            position: 'absolute',
-                            top: '40%',
-                            left: '5vw',
-                            transform: 'translateY(-50%)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '20px',
-                            zIndex: 10,
-                            pointerEvents: 'none',
-                        }}>
-                            <h1 style={{ fontSize: '6rem', fontWeight: 'bold', margin: 0, letterSpacing: '-2px', color: '#fff' }}>ABOUT US</h1>
-                            <div style={{ color: '#52B974', fontSize: '2rem', fontWeight: 'bold', letterSpacing: '-1px' }}>&gt;&gt;&gt;</div>
-                        </div>
-                        
-                        <div style={{
-                            position: 'absolute',
-                            top: '55%',
-                            left: '5vw',
-                            color: '#A0A5B0',
-                            fontSize: '1.2rem',
-                            maxWidth: '400px',
-                            lineHeight: '1.6',
-                            zIndex: 10,
-                            pointerEvents: 'none',
-                        }}>
-                            We are building the future of financial intelligence. Moving markets requires precision, speed, and absolute clarity.
-                        </div>
-
-                        {/* Growing SVG Graph (Spans 200vw) */}
+                        {/* Growing SVG Graph (Spans 400vw) */}
                         <div style={{ 
                             position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', 
                             pointerEvents: 'none', zIndex: 5
                         }}>
-                            <svg viewBox="0 0 200 100" preserveAspectRatio="none" style={{ width: '100%', height: '100%' }}>
+                            <svg viewBox="0 0 400 100" preserveAspectRatio="none" style={{ width: '100%', height: '100%' }}>
                                 <g>
                                     <polyline 
                                         points={activeGraphPointsString} 
@@ -1242,7 +1219,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                             {activePoints.length > 0 && (
                                 <div style={{
                                     position: 'absolute',
-                                    left: `${(tipX / 200) * 100}%`,
+                                    left: `${(tipX / 400) * 100}%`,
                                     top: `${tipY}%`,
                                     width: '8px',
                                     height: '8px',
@@ -1254,17 +1231,46 @@ window.onerror = function(message, source, lineno, colno, error) {
                                 }} />
                             )}
                         </div>
+
+                        {/* SCREEN 1: ABOUT US */}
+                        <div style={{
+                            position: 'absolute',
+                            top: '40%',
+                            left: '5vw',
+                            transform: 'translateY(-50%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '20px',
+                            zIndex: 10,
+                            pointerEvents: 'none',
+                        }}>
+                            <h1 style={{ fontSize: '6rem', fontWeight: 'bold', margin: 0, letterSpacing: '-2px', color: '#fff' }}>ABOUT US</h1>
+                            <div style={{ color: '#52B974', fontSize: '2rem', fontWeight: 'bold', letterSpacing: '-1px' }}>&gt;&gt;&gt;</div>
+                        </div>
+                        <div style={{
+                            position: 'absolute',
+                            top: '55%',
+                            left: '5vw',
+                            color: '#A0A5B0',
+                            fontSize: '1.2rem',
+                            maxWidth: '400px',
+                            lineHeight: '1.6',
+                            zIndex: 10,
+                            pointerEvents: 'none',
+                        }}>
+                            We are building the future of financial intelligence. Moving markets requires precision, speed, and absolute clarity.
+                        </div>
                         
-                        {/* RIGHT SIDE CONTENT (Screen 2: Centered at 150vw) */}
+                        {/* SCREEN 2: Dashboard Accordion (Centered at 150vw) */}
                         <div style={{
                             position: 'absolute',
                             top: '50%',
                             left: '150vw',
-                            transform: `translate(-50%, -50%) scale(${0.9 + progress * 0.1})`,
+                            transform: `translate(-50%, -50%) scale(${Math.min(1, 0.8 + Math.max(0, progress - 0.05) * 1.5)})`,
                             width: '80vw',
                             zIndex: 20,
-                            opacity: progress > 0.3 ? Math.min(1, (progress - 0.3) * 2) : 0,
-                            pointerEvents: progress > 0.5 ? 'auto' : 'none',
+                            opacity: Math.min(1, Math.max(0, (progress - 0.05) * 5)),
+                            pointerEvents: progress > 0.2 ? 'auto' : 'none',
                         }}>
                             <div style={{ textAlign: 'center', marginBottom: '40px' }}>
                                 <div style={{ color: '#52B974', fontSize: '12px', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '15px', fontWeight: 600 }}>Built for Professionals</div>
@@ -1279,14 +1285,7 @@ window.onerror = function(message, source, lineno, colno, error) {
 
                             {/* Accordion Images */}
                             <div 
-                                style={{ 
-                                    display: 'flex', 
-                                    flexDirection: 'row', 
-                                    justifyContent: 'center', 
-                                    gap: '15px', 
-                                    width: '100%', 
-                                    height: '350px'
-                                }}
+                                style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', gap: '15px', width: '100%', height: '350px' }}
                                 onMouseLeave={() => setHoveredPanel(null)}
                             >
                                 {[
@@ -1300,42 +1299,16 @@ window.onerror = function(message, source, lineno, colno, error) {
                                             key={idx}
                                             onMouseEnter={() => setHoveredPanel(idx)}
                                             style={{
-                                                position: 'relative',
-                                                height: '100%',
-                                                flex: isActive ? '3' : '1',
+                                                position: 'relative', height: '100%', flex: isActive ? '3' : '1',
                                                 transition: 'all 0.5s cubic-bezier(0.25, 1, 0.5, 1)',
-                                                borderRadius: '16px',
-                                                overflow: 'hidden',
-                                                border: isActive ? '1px solid #333' : '1px solid #1a222c',
+                                                borderRadius: '16px', overflow: 'hidden', border: isActive ? '1px solid #333' : '1px solid #1a222c',
                                                 opacity: hoveredPanel === null ? 0.8 : (isActive ? 1 : 0.4),
                                                 boxShadow: isActive ? '0 20px 50px rgba(0,0,0,0.8)' : 'none',
-                                                cursor: 'pointer',
-                                                backgroundColor: '#0B111A'
+                                                cursor: 'pointer', backgroundColor: '#0B111A'
                                             }}
                                         >
-                                            <img 
-                                                src={img.src} 
-                                                alt={img.alt} 
-                                                style={{ 
-                                                    width: '100%', 
-                                                    height: '100%', 
-                                                    objectFit: 'cover', 
-                                                    objectPosition: 'left top',
-                                                    display: 'block' 
-                                                }} 
-                                            />
-                                            <div style={{
-                                                position: 'absolute',
-                                                bottom: 0, left: 0, right: 0,
-                                                padding: '20px',
-                                                background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%)',
-                                                opacity: isActive ? 1 : 0,
-                                                transition: 'opacity 0.5s',
-                                                display: 'flex',
-                                                alignItems: 'flex-end',
-                                                pointerEvents: 'none',
-                                                height: '100px'
-                                            }}>
+                                            <img src={img.src} alt={img.alt} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'left top', display: 'block' }} />
+                                            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px', background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%)', opacity: isActive ? 1 : 0, transition: 'opacity 0.5s', display: 'flex', alignItems: 'flex-end', pointerEvents: 'none', height: '100px' }}>
                                                 <h3 style={{ margin: 0, color: '#fff', fontSize: '1.2rem', letterSpacing: '1.5px' }}>{img.label}</h3>
                                             </div>
                                         </div>
@@ -1343,6 +1316,99 @@ window.onerror = function(message, source, lineno, colno, error) {
                                 })}
                             </div>
                         </div>
+
+                        {/* SCREEN 3: SYSTEM OVERVIEW (Centered at 250vw) */}
+                        <div style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '250vw',
+                            transform: `translate(-50%, -50%) scale(${Math.min(1, 0.8 + Math.max(0, progress - 0.35) * 1.5)})`,
+                            width: '85vw',
+                            zIndex: 20,
+                            opacity: Math.min(1, Math.max(0, (progress - 0.35) * 5)),
+                            pointerEvents: progress > 0.5 ? 'auto' : 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '50px'
+                        }}>
+                            {/* Left side: Text */}
+                            <div style={{ flex: '1', paddingRight: '20px' }}>
+                                <div style={{ color: '#52B974', fontSize: '14px', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '20px', fontWeight: 600 }}>WHAT WE BUILT</div>
+                                <h2 style={{ fontSize: '4rem', fontWeight: 'bold', lineHeight: '1.1', color: 'white', margin: '0 0 30px 0', letterSpacing: '-1px' }}>
+                                    One platform that replaces everything.
+                                </h2>
+                                <p style={{ color: '#A0A5B0', fontSize: '1.2rem', lineHeight: '1.6', marginBottom: '40px' }}>
+                                    Walford OS consolidates portfolio tracking, quantitative research, risk management and market intelligence into a single AI-powered dashboard. No more switching between tools, tabs and interns.
+                                </p>
+                                
+                                {/* Bullet points */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                    {[
+                                        'Real-time portfolio snapshot with live P&L tracking',
+                                        'AI-powered research across 500+ instruments',
+                                        'Institutional-grade risk metrics at a glance',
+                                        'Built for equity research analysts and PMS managers'
+                                    ].map((point, i) => (
+                                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                            <span style={{ color: '#52B974', fontSize: '1.2rem' }}>&rarr;</span>
+                                            <span style={{ color: '#E2E8F0', fontSize: '1.1rem' }}>{point}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            {/* Right side: Image */}
+                            <div style={{ flex: '1', borderRadius: '16px', overflow: 'hidden', border: '1px solid #1a222c', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
+                                <img src="./system.jpeg" alt="System Overview" style={{ width: '100%', display: 'block' }} />
+                            </div>
+                        </div>
+
+                        {/* SCREEN 4: QUANT RESEARCH (Centered at 350vw) */}
+                        <div style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '350vw',
+                            transform: `translate(-50%, -50%) scale(${Math.min(1, 0.8 + Math.max(0, progress - 0.65) * 1.5)})`,
+                            width: '85vw',
+                            zIndex: 20,
+                            opacity: Math.min(1, Math.max(0, (progress - 0.65) * 5)),
+                            pointerEvents: progress > 0.8 ? 'auto' : 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '50px'
+                        }}>
+                            {/* Left side: Text */}
+                            <div style={{ flex: '1', paddingRight: '20px' }}>
+                                <div style={{ color: '#A0A5B0', fontSize: '14px', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '20px', fontWeight: 600 }}>QUANTITATIVE RESEARCH</div>
+                                <h2 style={{ fontSize: '4rem', fontWeight: 'bold', lineHeight: '1.1', color: 'white', margin: '0 0 30px 0', letterSpacing: '-1px' }}>
+                                    Institutional-grade<br/>backtesting engine.
+                                </h2>
+                                <p style={{ color: '#A0A5B0', fontSize: '1.2rem', lineHeight: '1.6', marginBottom: '40px' }}>
+                                    Run CAPM, APT, Fama-French and momentum strategies against historical data. Validate your thesis with the same infrastructure used by leading hedge funds — without the Bloomberg terminal price tag.
+                                </p>
+                                
+                                {/* Bullet points */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                    {[
+                                        'CAPM, APT and Fama-French 3-factor models built in',
+                                        'Backtest any strategy against NSE historical data',
+                                        'Sharpe ratio, drawdown and win rate calculated automatically',
+                                        'Export results directly to client-ready reports'
+                                    ].map((point, i) => (
+                                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                            <span style={{ color: '#fff', fontSize: '1.2rem' }}>&rarr;</span>
+                                            <span style={{ color: '#E2E8F0', fontSize: '1.1rem' }}>{point}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            {/* Right side: Image */}
+                            <div style={{ flex: '1', borderRadius: '16px', overflow: 'hidden', border: '1px solid #1a222c', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
+                                <img src="./quant.jpeg" alt="Quantitative Research" style={{ width: '100%', display: 'block' }} />
+                            </div>
+                        </div>
+
                     </div>
                     
                     {/* Edge interaction hints */}
@@ -1353,7 +1419,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                         transform: 'translateY(-50%)',
                         color: 'rgba(255,255,255,0.3)',
                         pointerEvents: 'none',
-                        opacity: progress < 0.9 ? 1 : 0,
+                        opacity: progress < 0.95 ? 1 : 0,
                         transition: 'opacity 0.5s',
                         display: 'flex',
                         flexDirection: 'column',
