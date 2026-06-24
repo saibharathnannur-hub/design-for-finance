@@ -1080,14 +1080,36 @@ window.onerror = function(message, source, lineno, colno, error) {
             
             const [targetProgress, setTargetProgress] = React.useState(0);
             const [progress, setProgress] = React.useState(0);
+            
+            // Friction/lock state for Peak 1
+            const lockedUntilRef = React.useRef(0);
+            const hasLockedRef = React.useRef(false);
 
             React.useEffect(() => {
                 let animationFrameId;
                 const lerp = () => {
                     setProgress(prev => {
-                        const diff = targetProgress - prev;
+                        let diff = targetProgress - prev;
+                        let nextProgress = prev + diff * 0.05;
+
+                        // PEAK 1 FRICTION LOGIC
+                        // Peak 1 is at x=75, which is index 150 out of roughly 450 total points.
+                        // 150 / 450 = 0.333 progress.
+                        const peak1Progress = 0.333;
+                        
+                        // If we approach Peak 1 for the first time
+                        if (!hasLockedRef.current && nextProgress >= peak1Progress - 0.01) {
+                            hasLockedRef.current = true;
+                            lockedUntilRef.current = Date.now() + 1500; // Lock for 1.5 seconds
+                        }
+
+                        // If currently locked, freeze the progress at Peak 1 exactly
+                        if (Date.now() < lockedUntilRef.current) {
+                            return peak1Progress;
+                        }
+
                         if (Math.abs(diff) < 0.001) return targetProgress;
-                        return prev + diff * 0.05; // 5% lerp for ultra-smooth buttery glide
+                        return nextProgress;
                     });
                     animationFrameId = requestAnimationFrame(lerp);
                 };
@@ -1095,24 +1117,36 @@ window.onerror = function(message, source, lineno, colno, error) {
                 return () => cancelAnimationFrame(animationFrameId);
             }, [targetProgress]);
 
-            // Expanded to 225 units to ensure perfect geometry for center alignment
+            // Sharper, more erratic "stock chart" points
             const keyPoints = [
                 {x: 0, y: 95},
                 {x: 10, y: 90, isPeak: true, id: 0}, // ABOUT US
-                {x: 20, y: 85},
-                {x: 40, y: 80},
+                {x: 15, y: 93},
+                {x: 25, y: 80},
+                {x: 35, y: 88},
+                {x: 45, y: 70},
+                {x: 55, y: 82},
+                {x: 65, y: 60},
                 // Peak 1
                 {x: 75, y: 65, isPeak: true, id: 1}, // PORTFOLIO
-                {x: 80, y: 78}, // Dip
-                {x: 100, y: 55},
+                {x: 78, y: 82}, // Sharp dip
+                {x: 88, y: 65},
+                {x: 98, y: 78},
+                {x: 110, y: 55},
+                {x: 118, y: 68},
                 // Peak 2 
                 {x: 125, y: 35, isPeak: true, id: 2}, // SYSTEM OVERVIEW
-                {x: 130, y: 55}, // Sharp dip
-                {x: 150, y: 60},
+                {x: 128, y: 60}, // Sharp dip
+                {x: 135, y: 45},
+                {x: 145, y: 70},
+                {x: 155, y: 35},
+                {x: 165, y: 55},
                 // Peak 3
                 {x: 175, y: 15, isPeak: true, id: 3}, // QUANT
-                {x: 185, y: 45}, 
-                {x: 200, y: 25},
+                {x: 180, y: 45}, 
+                {x: 190, y: 25},
+                {x: 200, y: 40},
+                {x: 215, y: 10},
                 {x: 225, y: 5}
             ];
 
@@ -1128,12 +1162,11 @@ window.onerror = function(message, source, lineno, colno, error) {
                             break;
                         }
                     }
+                    // Linear interpolation for sharp/jagged stock look
                     const t = (x - p1.x) / (p2.x - p1.x || 1);
-                    const tSmooth = (1 - Math.cos(t * Math.PI)) / 2;
-                    const y = p1.y + (p2.y - p1.y) * tSmooth;
+                    const y = p1.y + (p2.y - p1.y) * t;
                     
-                    const noise = (Math.sin(x * 2.5) * 0.5) + (Math.sin(x * 8.3) * 0.2);
-                    points.push({ x, y: y + noise });
+                    points.push({ x, y });
                 }
                 return points;
             }, []);
@@ -1143,7 +1176,6 @@ window.onerror = function(message, source, lineno, colno, error) {
                 const rect = containerRef.current.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 
-                // Map mouse starting at 80% mark, ends slightly before edge
                 let pct = (x - (rect.width * 0.8)) / (rect.width * 0.18);
                 pct = Math.max(0, Math.min(1, pct));
                 setTargetProgress(pct);
@@ -1162,9 +1194,6 @@ window.onerror = function(message, source, lineno, colno, error) {
 
             const activeGraphPointsString = activePoints.map(p => `${p.x},${p.y}`).join(' ');
 
-            // PERFECT GEOMETRY CAMERA:
-            // We lock the camera panning exactly at Peak 3 (x=175) so the line can finish drawing
-            // but the camera completely stops.
             const camTipX = Math.min(175, tipX);
             let camTipY = 50;
             if (activePoints.length > 0) {
@@ -1172,14 +1201,9 @@ window.onerror = function(message, source, lineno, colno, error) {
                 camTipY = camPoint.y;
             }
 
-            // translateX math: 
-            // - We want the left edge at 0 initially (Math.min(0, ...))
-            // - We want camTipX to be exactly at 50vw on screen (50 - camTipX)
             let translateX = Math.min(0, 50 - camTipX); 
-            // Center vertically perfectly
             let translateY = -(camTipY - 50); 
             
-            // Human friendly zoom
             let zoom = 1;
             const peaks = keyPoints.filter(p => p.isPeak && p.id > 0);
             let closestPeakDist = 1000;
@@ -1190,7 +1214,7 @@ window.onerror = function(message, source, lineno, colno, error) {
             if (closestPeakDist < 30) {
                 const zoomFactor = 1 - (closestPeakDist / 30);
                 const smoothZoom = zoomFactor * zoomFactor * (3 - 2 * zoomFactor);
-                zoom = 1 + (0.85 * smoothZoom); // Max 1.85x
+                zoom = 1 + (0.85 * smoothZoom); 
             }
 
             return (
@@ -1203,7 +1227,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                         position: 'absolute',
                         top: 0,
                         left: 0,
-                        width: '225vw', // Container spans exactly 225vw matching SVG coords
+                        width: '225vw',
                         height: '100vh',
                         transform: `translate(${translateX}vw, ${translateY}vh) scale(${zoom})`,
                         transformOrigin: `${(camTipX/225) * 100}% ${camTipY}%`,
