@@ -1191,6 +1191,9 @@ window.onerror = function(message, source, lineno, colno, error) {
                 
                 let pct = rawPct;
                 
+                // Cap at Peak 3 (0.777) so it doesn't draw past the final text
+                pct = Math.min(pct, 0.777);
+                
                 // Velocity-based Magnetic Friction:
                 // If the user's cursor move rate slows down near a peak, we "snap" the progress to that peak.
                 // This creates physical friction that feels natural and can be broken by swiping faster.
