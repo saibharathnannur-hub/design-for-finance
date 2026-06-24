@@ -1093,27 +1093,31 @@ window.onerror = function(message, source, lineno, colno, error) {
         // --- Main App Composer ---
         function AboutUsSection() {
             const [progress, setProgress] = React.useState(0);
+            const [unlocked, setUnlocked] = React.useState(false);
             
             // Generate a realistic-looking stock chart path once
+            // Starts at x=35 (after "ABOUT US >>>") and goes to x=90
             const graphPoints = React.useMemo(() => {
                 let pts = [];
-                let currentY = 70;
+                let currentY = 50;
                 let trend = -0.5; // Overall upward trend (lower Y is higher visually)
-                for(let i=0; i<=100; i+=1) {
+                for(let i=35; i<=90; i+=0.5) {
                     pts.push({ x: i, y: currentY });
                     // Random walk with momentum
-                    let change = (Math.random() - 0.5) * 4 + trend;
-                    if (currentY < 20) trend += 0.5; // resistance
-                    if (currentY > 80) trend -= 0.5; // support
+                    let change = (Math.random() - 0.5) * 3 + trend;
+                    if (currentY < 30) trend += 0.3; // resistance
+                    if (currentY > 70) trend -= 0.3; // support
                     
                     // Add some sharp moves
-                    if (i === 30) change = -15; // big jump
-                    if (i === 60) change = 10;  // dip
-                    if (i === 80) change = -20; // huge jump
+                    if (i === 50) change = -10; // jump
+                    if (i === 65) change = 8;  // dip
+                    if (i === 80) change = -15; // huge jump to form the peak
                     
                     currentY += change;
-                    currentY = Math.max(10, Math.min(90, currentY));
+                    currentY = Math.max(20, Math.min(80, currentY));
                 }
+                // Force the final point to be a nice peak
+                pts[pts.length-1].y = 25; 
                 return pts;
             }, []);
 
@@ -1123,10 +1127,23 @@ window.onerror = function(message, source, lineno, colno, error) {
                 let p = x / rect.width;
                 p = Math.max(0, Math.min(1, p));
                 setProgress(p);
+                
+                if (p > 0.85 && !unlocked) {
+                    setUnlocked(true);
+                }
             };
 
             // Calculate which points to show based on progress
-            const visibleCount = Math.max(1, Math.floor(progress * graphPoints.length));
+            // We map progress (0 to 1) to the points array
+            // If progress is < 0.35, we don't show any graph.
+            // If progress > 0.35, we start showing the graph points.
+            const graphStartProgress = 0.35;
+            let visibleCount = 0;
+            if (progress > graphStartProgress) {
+                const normalizedProgress = (progress - graphStartProgress) / (1 - graphStartProgress);
+                visibleCount = Math.max(1, Math.floor(normalizedProgress * graphPoints.length));
+            }
+            
             const activePoints = graphPoints.slice(0, visibleCount);
             
             let tipX = 0;
@@ -1143,124 +1160,196 @@ window.onerror = function(message, source, lineno, colno, error) {
             const textX = 10; // Fixed position
             
             return (
-                <div 
-                    onMouseMove={handleMouseMove}
-                    style={{ 
-                        width: '100vw', 
-                        height: '100vh', 
-                        position: 'relative', 
-                        overflow: 'hidden', 
-                        backgroundColor: '#000',
-                        cursor: 'ew-resize' // Indicate horizontal movement
-                    }}
-                >
-                    {/* Background faint grid lines */}
-                    <div style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: '1px', backgroundColor: 'rgba(255,255,255,0.1)' }} />
-                    <div style={{ position: 'absolute', top: 0, left: '20%', width: '1px', height: '100%', backgroundColor: 'rgba(255,255,255,0.05)' }} />
-                    <div style={{ position: 'absolute', top: 0, left: '50%', width: '1px', height: '100%', backgroundColor: 'rgba(255,255,255,0.05)' }} />
-                    <div style={{ position: 'absolute', top: 0, left: '80%', width: '1px', height: '100%', backgroundColor: 'rgba(255,255,255,0.05)' }} />
+                <div style={{ position: 'relative', width: '100%', minHeight: '100vh', backgroundColor: '#000' }}>
+                    
+                    {/* TOP SECTION: 100vh interactive area */}
+                    <div 
+                        onMouseMove={handleMouseMove}
+                        style={{ 
+                            width: '100vw', 
+                            height: '100vh', 
+                            position: 'sticky', 
+                            top: 0,
+                            overflow: 'hidden', 
+                            cursor: 'ew-resize', // Indicate horizontal movement
+                            zIndex: 10
+                        }}
+                    >
+                        {/* Background faint grid lines */}
+                        <div style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: '1px', backgroundColor: 'rgba(255,255,255,0.05)' }} />
+                        <div style={{ position: 'absolute', top: 0, left: '20%', width: '1px', height: '100%', backgroundColor: 'rgba(255,255,255,0.03)' }} />
+                        <div style={{ position: 'absolute', top: 0, left: '50%', width: '1px', height: '100%', backgroundColor: 'rgba(255,255,255,0.03)' }} />
+                        <div style={{ position: 'absolute', top: 0, left: '80%', width: '1px', height: '100%', backgroundColor: 'rgba(255,255,255,0.03)' }} />
 
-                    {/* ABOUT US TEXT */}
-                    <div style={{
-                        position: 'absolute',
-                        top: '40%',
-                        left: `${textX}%`,
-                        transform: 'translateY(-50%)',
-                        opacity: textOpacity,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '20px',
-                        zIndex: 10,
-                        pointerEvents: 'none',
-                        transition: 'opacity 0.2s, left 0.2s'
-                    }}>
-                        <h1 style={{ fontSize: '6rem', fontWeight: 'bold', margin: 0, letterSpacing: '-2px', color: '#fff' }}>ABOUT US</h1>
-                        <div style={{ color: '#52B974', fontSize: '2rem', fontWeight: 'bold', letterSpacing: '-1px' }}>&gt;&gt;&gt;</div>
+                        {/* ABOUT US TEXT */}
+                        <div style={{
+                            position: 'absolute',
+                            top: '40%',
+                            left: `${textX}%`,
+                            transform: 'translateY(-50%)',
+                            opacity: textOpacity,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '20px',
+                            zIndex: 10,
+                            pointerEvents: 'none',
+                        }}>
+                            <h1 style={{ fontSize: '6rem', fontWeight: 'bold', margin: 0, letterSpacing: '-2px', color: '#fff' }}>ABOUT US</h1>
+                            <div style={{ color: '#52B974', fontSize: '2rem', fontWeight: 'bold', letterSpacing: '-1px' }}>&gt;&gt;&gt;</div>
+                        </div>
+                        
+                        {/* Secondary Text under ABOUT US */}
+                        <div style={{
+                            position: 'absolute',
+                            top: '55%',
+                            left: `${textX}%`,
+                            opacity: 1,
+                            color: '#A0A5B0',
+                            fontSize: '1.2rem',
+                            maxWidth: '400px',
+                            lineHeight: '1.6',
+                            zIndex: 10,
+                            pointerEvents: 'none',
+                        }}>
+                            We are building the future of financial intelligence. Moving markets requires precision, speed, and absolute clarity.
+                        </div>
+
+                        {/* Growing SVG Graph */}
+                        <div style={{ 
+                            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', 
+                            pointerEvents: 'none', zIndex: 5
+                        }}>
+                            <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ width: '100%', height: '100%' }}>
+                                <g>
+                                    {/* Outer Glow */}
+                                    <polyline 
+                                        points={activeGraphPointsString} 
+                                        fill="none" 
+                                        stroke="#52B974" 
+                                        strokeWidth="0.5"
+                                        opacity="0.2"
+                                        filter="blur(2px)"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
+                                    
+                                    {/* Main Sharp Line */}
+                                    <polyline 
+                                        points={activeGraphPointsString} 
+                                        fill="none" 
+                                        stroke="#52B974" 
+                                        strokeWidth="0.3"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
+                                </g>
+                            </svg>
+
+                            {/* Glowing Tip Pointer */}
+                            {activePoints.length > 0 && (
+                                <div style={{
+                                    position: 'absolute',
+                                    left: `${tipX}%`,
+                                    top: `${tipY}%`,
+                                    width: '6px',
+                                    height: '6px',
+                                    backgroundColor: '#FFF',
+                                    borderRadius: '50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    boxShadow: '0 0 20px 8px rgba(82, 185, 116, 0.6), 0 0 10px 4px rgba(82, 185, 116, 0.9)',
+                                    zIndex: 10
+                                }} />
+                            )}
+                        </div>
+                        
+                        {/* Instruction at the bottom */}
+                        <div style={{
+                            position: 'absolute',
+                            bottom: '40px',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            color: 'rgba(255,255,255,0.4)',
+                            fontSize: '0.9rem',
+                            letterSpacing: '2px',
+                            pointerEvents: 'none',
+                            textTransform: 'uppercase',
+                            opacity: unlocked ? 0 : 1,
+                            transition: 'opacity 0.5s'
+                        }}>
+                            Move cursor right to explore &rarr;
+                        </div>
+
+                        {/* Scroll down indicator once unlocked */}
+                        <div style={{
+                            position: 'absolute',
+                            bottom: '40px',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            color: '#52B974',
+                            fontSize: '0.9rem',
+                            letterSpacing: '2px',
+                            pointerEvents: 'none',
+                            textTransform: 'uppercase',
+                            opacity: unlocked ? 1 : 0,
+                            transition: 'opacity 0.5s',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '10px'
+                        }}>
+                            <span>Scroll Down</span>
+                            <span style={{ fontSize: '1.5rem', animation: 'bounce 2s infinite' }}>&darr;</span>
+                        </div>
                     </div>
                     
-                    {/* Secondary Text under ABOUT US */}
-                    <div style={{
-                        position: 'absolute',
-                        top: '55%',
-                        left: `${textX}%`,
-                        opacity: 1,
-                        color: '#A0A5B0',
-                        fontSize: '1.2rem',
-                        maxWidth: '400px',
-                        lineHeight: '1.6',
-                        zIndex: 10,
-                        pointerEvents: 'none',
-                        transition: 'opacity 0.2s, left 0.2s'
-                    }}>
-                        We are building the future of financial intelligence. Moving markets requires precision, speed, and absolute clarity.
-                    </div>
-
-                    {/* Growing SVG Graph */}
+                    {/* BOTTOM SECTION: Unlocked Content */}
                     <div style={{ 
-                        position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', 
-                        pointerEvents: 'none', zIndex: 5
+                        position: 'relative', 
+                        width: '100%', 
+                        zIndex: 20, 
+                        backgroundColor: '#000',
+                        opacity: unlocked ? 1 : 0,
+                        transform: unlocked ? 'translateY(0)' : 'translateY(50px)',
+                        transition: 'opacity 1s ease-out, transform 1s ease-out',
+                        padding: '150px 5%',
+                        display: unlocked ? 'block' : 'none' // Prevent scrolling before unlock
                     }}>
-                        <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ width: '100%', height: '100%' }}>
-                            <g>
-                                {/* Outer Glow */}
-                                <polyline 
-                                    points={activeGraphPointsString} 
-                                    fill="none" 
-                                    stroke="#52B974" 
-                                    strokeWidth="0.5"
-                                    opacity="0.2"
-                                    filter="blur(2px)"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                />
-                                
-                                {/* Main Sharp Line */}
-                                <polyline 
-                                    points={activeGraphPointsString} 
-                                    fill="none" 
-                                    stroke="#52B974" 
-                                    strokeWidth="0.3"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                />
-                            </g>
-                        </svg>
+                        {/* Text Block */}
+                        <div style={{ textAlign: 'center', marginBottom: '100px' }}>
+                            <div style={{ color: '#52B974', fontSize: '14px', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '30px', fontWeight: 600 }}>Built for Professionals</div>
+                            <h2 style={{ fontSize: '5rem', fontWeight: 'bold', lineHeight: '1.1', color: 'white', margin: '0 0 40px 0', letterSpacing: '-1px' }}>
+                                Every tool you need.<br/>
+                                <span style={{ color: '#A0A5B0' }}>One unified workspace.</span>
+                            </h2>
+                            <p style={{ color: '#A0A5B0', fontSize: '1.4rem', maxWidth: '800px', margin: '0 auto', lineHeight: '1.6' }}>
+                                From portfolio tracking to quantitative research — everything your team needs in one place.
+                            </p>
+                        </div>
 
-                        {/* Glowing Tip Pointer */}
-                        {progress > 0 && (
-                            <div style={{
-                                position: 'absolute',
-                                left: `${tipX}%`,
-                                top: `${tipY}%`,
-                                width: '6px',
-                                height: '6px',
-                                backgroundColor: '#FFF',
-                                borderRadius: '50%',
-                                transform: 'translate(-50%, -50%)',
-                                boxShadow: '0 0 20px 8px rgba(82, 185, 116, 0.6), 0 0 10px 4px rgba(82, 185, 116, 0.9)',
-                                zIndex: 10
-                            }} />
-                        )}
-                    </div>
-                    
-                    {/* Instruction at the bottom */}
-                    <div style={{
-                        position: 'absolute',
-                        bottom: '40px',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        color: 'rgba(255,255,255,0.4)',
-                        fontSize: '0.9rem',
-                        letterSpacing: '2px',
-                        pointerEvents: 'none',
-                        textTransform: 'uppercase'
-                    }}>
-                        Move cursor right to explore &rarr;
+                        {/* Images Stack */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '80px' }}>
+                            {/* Image 1 Placeholder */}
+                            <div style={{ width: '100%', maxWidth: '1200px', borderRadius: '16px', overflow: 'hidden', border: '1px solid #1a222c', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
+                                <img src="./portfolio.png" alt="Portfolio Analysis" style={{ width: '100%', display: 'block', backgroundColor: '#0B111A', minHeight: '600px', objectFit: 'cover' }} onError={(e) => {e.target.style.display='none'; e.target.nextSibling.style.display='flex';}} />
+                                <div style={{ width: '100%', height: '600px', backgroundColor: '#0B111A', display: 'none', alignItems: 'center', justifyContent: 'center', color: '#555', fontSize: '24px' }}>[Portfolio Analysis Image Placeholder: Add portfolio.png to folder]</div>
+                            </div>
+                            
+                            {/* Image 2 Placeholder */}
+                            <div style={{ width: '100%', maxWidth: '1200px', borderRadius: '16px', overflow: 'hidden', border: '1px solid #1a222c', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
+                                <img src="./quant.png" alt="Quantitative Research" style={{ width: '100%', display: 'block', backgroundColor: '#0B111A', minHeight: '600px', objectFit: 'cover' }} onError={(e) => {e.target.style.display='none'; e.target.nextSibling.style.display='flex';}} />
+                                <div style={{ width: '100%', height: '600px', backgroundColor: '#0B111A', display: 'none', alignItems: 'center', justifyContent: 'center', color: '#555', fontSize: '24px' }}>[Quantitative Research Image Placeholder: Add quant.png to folder]</div>
+                            </div>
+                            
+                            {/* Image 3 Placeholder */}
+                            <div style={{ width: '100%', maxWidth: '1200px', borderRadius: '16px', overflow: 'hidden', border: '1px solid #1a222c', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
+                                <img src="./system.png" alt="System Overview" style={{ width: '100%', display: 'block', backgroundColor: '#0B111A', minHeight: '600px', objectFit: 'cover' }} onError={(e) => {e.target.style.display='none'; e.target.nextSibling.style.display='flex';}} />
+                                <div style={{ width: '100%', height: '600px', backgroundColor: '#0B111A', display: 'none', alignItems: 'center', justifyContent: 'center', color: '#555', fontSize: '24px' }}>[System Overview Image Placeholder: Add system.png to folder]</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             );
         }
-
 function App() {
             return (
                 <div style={{ backgroundColor: '#000', fontFamily: 'Inter, sans-serif' }}>
