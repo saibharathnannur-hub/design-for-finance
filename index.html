@@ -1078,18 +1078,16 @@ window.onerror = function(message, source, lineno, colno, error) {
         function AboutUsSection() {
             const containerRef = React.useRef(null);
             
-            // For smooth gliding
             const [targetProgress, setTargetProgress] = React.useState(0);
             const [progress, setProgress] = React.useState(0);
 
-            // Lerp effect for buttery smooth camera
             React.useEffect(() => {
                 let animationFrameId;
                 const lerp = () => {
                     setProgress(prev => {
                         const diff = targetProgress - prev;
                         if (Math.abs(diff) < 0.001) return targetProgress;
-                        return prev + diff * 0.08; // 8% interpolation per frame for smooth but responsive feel
+                        return prev + diff * 0.08; 
                     });
                     animationFrameId = requestAnimationFrame(lerp);
                 };
@@ -1097,23 +1095,18 @@ window.onerror = function(message, source, lineno, colno, error) {
                 return () => cancelAnimationFrame(animationFrameId);
             }, [targetProgress]);
 
-            // We compress the entire journey to 120 SVG units to make it tight.
-            // Peak 3 is at 100.
             const keyPoints = [
                 {x: 0, y: 95},
-                {x: 5, y: 90, isPeak: true, id: 0}, // ABOUT US
+                {x: 5, y: 90, isPeak: true, id: 0}, 
                 {x: 10, y: 85},
                 {x: 20, y: 80},
-                // Peak 1
-                {x: 40, y: 65, isPeak: true, id: 1}, // PORTFOLIO
-                {x: 45, y: 78}, // Dip
+                {x: 40, y: 65, isPeak: true, id: 1}, 
+                {x: 45, y: 78}, 
                 {x: 55, y: 55},
-                // Peak 2 
-                {x: 70, y: 35, isPeak: true, id: 2}, // SYSTEM OVERVIEW
-                {x: 75, y: 55}, // Sharp dip
+                {x: 70, y: 35, isPeak: true, id: 2}, 
+                {x: 75, y: 55}, 
                 {x: 85, y: 60},
-                // Peak 3
-                {x: 100, y: 15, isPeak: true, id: 3}, // QUANT
+                {x: 100, y: 15, isPeak: true, id: 3}, 
                 {x: 105, y: 45}, 
                 {x: 120, y: 20}
             ];
@@ -1145,17 +1138,14 @@ window.onerror = function(message, source, lineno, colno, error) {
                 const rect = containerRef.current.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 
-                // User mapping: starts at 80% mark of the screen
-                let pct = (x - (rect.width * 0.8)) / (rect.width * 0.2);
+                // Map mouse starting at 80% and ending slightly before the literal monitor edge 
+                // so the user can easily hit 100% progress.
+                let pct = (x - (rect.width * 0.8)) / (rect.width * 0.18);
                 pct = Math.max(0, Math.min(1, pct));
                 setTargetProgress(pct);
             };
 
-            // Calculate active points
-            // We want it to END exactly when Peak 3 center aligns.
-            // Peak 3 is at x=100. Total points max corresponds to x=100.
-            // Graph points array has 241 points (0 to 120 step 0.5).
-            // Index of x=100 is 200.
+            // End exactly when Peak 3 is hit (x=100 -> index 200)
             const maxIndex = 200; 
             const currentIndex = Math.max(1, Math.floor(progress * maxIndex));
             const activePoints = graphPoints.slice(0, currentIndex);
@@ -1169,12 +1159,11 @@ window.onerror = function(message, source, lineno, colno, error) {
 
             const activeGraphPointsString = activePoints.map(p => `${p.x},${p.y}`).join(' ');
 
-            // Calculate Camera Transform
-            // The graph grows from the 80% mark, so tipX is anchored to 80vw.
-            // Since we use 120 SVG units mapped to 120vw
-            // Let's make 1 SVG unit = 1vw.
-            let translateX = -tipX + 80; 
-
+            // Camera panning logic
+            // Math.min(0, ...) ensures the container never pans right (leaving a blank gap on the left).
+            // -tipX + 50 ensures that when the graph tip reaches 100, the container is pushed left by 50vw.
+            // Since the tip is at 100vw relative to the container, it appears perfectly at 50vw (center of screen).
+            let translateX = Math.min(0, -tipX + 50); 
             let translateY = -(tipY - 50); 
             
             let zoom = 1;
@@ -1256,7 +1245,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                         {/* PEAK 0: ABOUT US */}
                         <div style={{
                             position: 'absolute',
-                            left: `${(5/120)*100}%`,
+                            left: `5vw`,
                             top: `90%`,
                             transform: 'translate(0, -110%)',
                             opacity: tipX < 15 ? 1 : Math.max(0, 1 - (tipX - 15) / 5),
