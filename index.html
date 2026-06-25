@@ -1740,9 +1740,8 @@ window.onerror = function(message, source, lineno, colno, error) {
                                 fontSize: '6vw',
                                 fontWeight: '900',
                                 color: '#000',
-                                transform: `translate(${translateX}%, ${translateY}%)`,
-                                opacity: scaleX > 0 ? 1 : 0,
-                                willChange: 'transform, opacity'
+                                transform: `translate(${translateX}vw, ${translateY}vh)`,
+                                willChange: 'transform'
                             }}>
                                 {block.currency}
                             </div>
