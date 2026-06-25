@@ -1590,50 +1590,96 @@ window.onerror = function(message, source, lineno, colno, error) {
             );
         }
 
-        function CurrencyCheckeredTransition() {
-            const currencies = ['$', '€', '£', '¥', '₿', '₹', '₽', '₩'];
-            // Create exactly 24 boxes to fill a standard widescreen display evenly (e.g. 8x3)
-            const [boxes, setBoxes] = React.useState(Array(24).fill(0));
+        function GlobalScrollTransition() {
+            const [progress, setProgress] = React.useState(0);
 
             React.useEffect(() => {
-                const interval = setInterval(() => {
-                    setBoxes(prev => prev.map(() => Math.random() > 0.75 ? 1 : 0));
-                }, 1500);
-                return () => clearInterval(interval);
+                const boundaryMarker = document.getElementById('transition-marker');
+                
+                const handleScroll = () => {
+                    if (!boundaryMarker) return;
+                    const rect = boundaryMarker.getBoundingClientRect();
+                    const windowHeight = window.innerHeight;
+                    
+                    // The marker is 150vh tall. We start transition when marker top reaches 50% of screen.
+                    const triggerPoint = windowHeight * 0.5;
+                    // The transition lasts for 150vh of scroll distance
+                    const distance = windowHeight * 1.5;
+
+                    const currentOffset = triggerPoint - rect.top;
+
+                    if (currentOffset > 0 && currentOffset < distance) {
+                        setProgress(currentOffset / distance);
+                    } else if (currentOffset <= 0) {
+                        setProgress(0);
+                    } else {
+                        setProgress(1);
+                    }
+                };
+
+                window.addEventListener('scroll', handleScroll);
+                handleScroll();
+                return () => window.removeEventListener('scroll', handleScroll);
             }, []);
 
+            const cols = 5;
+            const rows = 4;
+            const totalBlocks = cols * rows;
+
+            const blocks = React.useMemo(() => {
+                const currencies = ['$', '€', '£', '¥', '₿', '₹', '₽', '₩'];
+                return Array.from({ length: totalBlocks }).map((_, i) => ({
+                    id: i,
+                    currency: currencies[i % currencies.length],
+                    entryStart: Math.random() * 0.3, 
+                    entryEnd: 0.4 + Math.random() * 0.1, 
+                    exitStart: 0.5 + Math.random() * 0.1, 
+                    exitEnd: 0.7 + Math.random() * 0.3, 
+                    direction: Math.random() > 0.5 ? 1 : -1 
+                }));
+            }, []);
+
+            if (progress === 0 || progress === 1) return null;
+
             return (
-                <div style={{
-                    width: '100vw',
-                    marginLeft: 'calc(-50vw + 50%)',
-                    backgroundColor: '#000',
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-                    gap: '0',
-                    borderTop: '1px solid #111',
-                    borderBottom: '1px solid #111'
-                }}>
-                    {boxes.map((isActive, i) => {
-                        const currency = currencies[i % currencies.length];
-                        const isCheckered = (Math.floor(i / 8) + (i % 8)) % 2 === 0;
+                <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 9999, pointerEvents: 'none', display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gridTemplateRows: `repeat(${rows}, 1fr)` }}>
+                    {blocks.map(block => {
+                        let scaleX = 0;
+                        if (progress >= block.entryStart && progress < block.entryEnd) {
+                            scaleX = (progress - block.entryStart) / (block.entryEnd - block.entryStart);
+                        } else if (progress >= block.entryEnd && progress <= block.exitStart) {
+                            scaleX = 1;
+                        } else if (progress > block.exitStart && progress <= block.exitEnd) {
+                            scaleX = 1 - ((progress - block.exitStart) / (block.exitEnd - block.exitStart));
+                        } else {
+                            scaleX = 0;
+                        }
+
+                        const easeInOut = t => t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+                        const easedScale = easeInOut(scaleX);
+
+                        let translateX = 0;
+                        if (progress < block.entryEnd) {
+                            translateX = (1 - easedScale) * 100 * block.direction;
+                        } else if (progress > block.exitStart) {
+                            translateX = (1 - easedScale) * 100 * -block.direction;
+                        }
+
                         return (
-                            <div key={i} style={{
-                                aspectRatio: '1.5/1',
-                                backgroundColor: isCheckered ? '#050505' : '#0a0a0a',
-                                border: '1px solid #111',
+                            <div key={block.id} style={{
+                                backgroundColor: '#52B974',
+                                border: '1px solid #000',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                fontSize: '32px',
-                                color: isActive ? '#52B974' : '#111',
-                                transition: 'all 0.8s ease',
-                                transform: isActive ? 'rotateY(180deg)' : 'rotateY(0deg)',
-                                fontFamily: 'Inter, sans-serif',
-                                fontWeight: '800'
+                                fontSize: '6vw',
+                                fontWeight: '900',
+                                color: '#000',
+                                transform: `translateX(${translateX}%)`,
+                                opacity: scaleX > 0 ? 1 : 0,
+                                willChange: 'transform'
                             }}>
-                                <div style={{ transform: isActive ? 'rotateY(180deg)' : 'none' }}>
-                                    {currency}
-                                </div>
+                                {block.currency}
                             </div>
                         );
                     })}
@@ -1644,12 +1690,14 @@ window.onerror = function(message, source, lineno, colno, error) {
 function App() {
             return (
                 <div style={{ backgroundColor: '#000', fontFamily: 'Inter, sans-serif' }}>
+                    <GlobalScrollTransition />
                     <HeroTransitionSection />
-                    <CurrencyCheckeredTransition />
                     <AboutUsSection />
-                    <CurrencyCheckeredTransition />
+                    
+                    {/* The transition marker gives the overlay time to animate over 150vh of scroll distance */}
+                    <div id="transition-marker" style={{ height: '150vh', backgroundColor: '#000' }}></div>
+                    
                     <ScrollTransitionSection />
-                    <CurrencyCheckeredTransition />
                     <FooterBlocks />
                 </div>
             );
