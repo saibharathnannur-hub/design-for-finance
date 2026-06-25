@@ -1589,12 +1589,67 @@ window.onerror = function(message, source, lineno, colno, error) {
                 </div>
             );
         }
+
+        function CurrencyCheckeredTransition() {
+            const currencies = ['$', '€', '£', '¥', '₿', '₹', '₽', '₩'];
+            // Create exactly 24 boxes to fill a standard widescreen display evenly (e.g. 8x3)
+            const [boxes, setBoxes] = React.useState(Array(24).fill(0));
+
+            React.useEffect(() => {
+                const interval = setInterval(() => {
+                    setBoxes(prev => prev.map(() => Math.random() > 0.75 ? 1 : 0));
+                }, 1500);
+                return () => clearInterval(interval);
+            }, []);
+
+            return (
+                <div style={{
+                    width: '100vw',
+                    marginLeft: 'calc(-50vw + 50%)',
+                    backgroundColor: '#000',
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                    gap: '0',
+                    borderTop: '1px solid #111',
+                    borderBottom: '1px solid #111'
+                }}>
+                    {boxes.map((isActive, i) => {
+                        const currency = currencies[i % currencies.length];
+                        const isCheckered = (Math.floor(i / 8) + (i % 8)) % 2 === 0;
+                        return (
+                            <div key={i} style={{
+                                aspectRatio: '1.5/1',
+                                backgroundColor: isCheckered ? '#050505' : '#0a0a0a',
+                                border: '1px solid #111',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '32px',
+                                color: isActive ? '#52B974' : '#111',
+                                transition: 'all 0.8s ease',
+                                transform: isActive ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                                fontFamily: 'Inter, sans-serif',
+                                fontWeight: '800'
+                            }}>
+                                <div style={{ transform: isActive ? 'rotateY(180deg)' : 'none' }}>
+                                    {currency}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        }
+
 function App() {
             return (
                 <div style={{ backgroundColor: '#000', fontFamily: 'Inter, sans-serif' }}>
                     <HeroTransitionSection />
+                    <CurrencyCheckeredTransition />
                     <AboutUsSection />
+                    <CurrencyCheckeredTransition />
                     <ScrollTransitionSection />
+                    <CurrencyCheckeredTransition />
                     <FooterBlocks />
                 </div>
             );
