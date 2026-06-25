@@ -1002,49 +1002,20 @@ window.onerror = function(message, source, lineno, colno, error) {
                         padding: '120px 5%',
                         marginBottom: '150px'
                     }}>
-                        {/* Giant Background Text */}
+                        {/* Campus Background Image */}
                         <div style={{
                             position: 'absolute',
-                            top: '5%',
-                            left: '-10%',
-                            width: '200vw',
-                            transform: 'rotate(-8deg)',
-                            whiteSpace: 'nowrap',
-                            opacity: 0.5,
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            backgroundImage: 'url("assets/iit_madras.png")',
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            opacity: 0.15,
                             pointerEvents: 'none',
-                            zIndex: 1,
-                            userSelect: 'none',
-                            display: 'flex'
-                        }}>
-                            <div style={{ 
-                                animation: 'ticker 20s linear infinite', 
-                                display: 'flex', 
-                                fontSize: '28vw',
-                                fontWeight: '900',
-                                color: '#52B974',
-                                fontFamily: '"Caveat Brush", "Permanent Marker", cursive',
-                                lineHeight: '0.8'
-                            }}>
-                                <span style={{ paddingRight: '100px' }}>Incubated</span>
-                                <span style={{ paddingRight: '100px' }}>Incubated</span>
-                                <span style={{ paddingRight: '100px' }}>Incubated</span>
-                                <span style={{ paddingRight: '100px' }}>Incubated</span>
-                            </div>
-                            <div style={{ 
-                                animation: 'ticker 20s linear infinite', 
-                                display: 'flex', 
-                                fontSize: '28vw',
-                                fontWeight: '900',
-                                color: '#52B974',
-                                fontFamily: '"Caveat Brush", "Permanent Marker", cursive',
-                                lineHeight: '0.8'
-                            }}>
-                                <span style={{ paddingRight: '100px' }}>Incubated</span>
-                                <span style={{ paddingRight: '100px' }}>Incubated</span>
-                                <span style={{ paddingRight: '100px' }}>Incubated</span>
-                                <span style={{ paddingRight: '100px' }}>Incubated</span>
-                            </div>
-                        </div>
+                            zIndex: 1
+                        }}></div>
                         
                         {/* Foreground Content */}
                         <div style={{ position: 'relative', zIndex: 2, maxWidth: '1200px', margin: '0 auto' }}>
