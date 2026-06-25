@@ -996,6 +996,56 @@ window.onerror = function(message, source, lineno, colno, error) {
             );
         }
 
+        function FeatureCard({ title, desc, iconSvg, bgImage, defaultDark = false }) {
+            const [isHovered, setIsHovered] = useState(false);
+            const isDark = defaultDark || isHovered;
+            
+            return (
+                <div 
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                    style={{ 
+                        backgroundColor: isDark ? '#111' : 'white', 
+                        padding: '50px', 
+                        borderRadius: '24px', 
+                        border: isDark ? '1px solid #333' : '1px solid #E2E8F0', 
+                        boxShadow: isHovered ? '0 20px 40px rgba(82, 185, 116, 0.2)' : (defaultDark ? '0 10px 40px rgba(0,0,0,0.1)' : '0 10px 40px rgba(0,0,0,0.03)'), 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        justifyContent: 'space-between',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        transition: 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, background-color 0.4s ease, border-color 0.4s ease',
+                        cursor: 'pointer',
+                        transform: isHovered ? 'translateY(-10px) scale(1.02)' : 'none'
+                    }}
+                >
+                    {/* Background Image */}
+                    <div style={{
+                        position: 'absolute',
+                        top: 0, left: 0, width: '100%', height: '100%',
+                        backgroundImage: `url("${bgImage}")`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        opacity: isHovered ? 0.4 : 0,
+                        transition: 'opacity 0.5s ease',
+                        pointerEvents: 'none',
+                        zIndex: 0
+                    }}></div>
+                    
+                    <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
+                        <div style={{ width: '60px', height: '60px', borderRadius: '16px', backgroundColor: isDark ? '#222' : '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '40px', transition: 'background-color 0.4s ease' }}>
+                            {iconSvg}
+                        </div>
+                        <div>
+                            <h3 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '15px', color: isDark ? 'white' : '#111', letterSpacing: '-0.5px', transition: 'color 0.4s ease' }}>{title}</h3>
+                            <p style={{ color: isDark ? '#94A3B8' : '#64748b', fontSize: '16px', lineHeight: '1.6', margin: 0, fontWeight: '500', transition: 'color 0.4s ease' }}>{desc}</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
         function FooterBlocks() {
             return (
                 <div style={{ backgroundColor: '#000', color: 'white', padding: '100px 5% 0 5%', fontFamily: 'Inter, sans-serif' }}>
@@ -1040,37 +1090,29 @@ window.onerror = function(message, source, lineno, colno, error) {
                             {/* Editorial Detail Grid */}
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', marginTop: '80px' }}>
                                 {/* Card 1: Mentorship */}
-                                <div className="hover-pop" style={{ backgroundColor: 'white', padding: '50px', borderRadius: '24px', border: '1px solid #E2E8F0', boxShadow: '0 10px 40px rgba(0,0,0,0.03)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                                    <div style={{ width: '60px', height: '60px', borderRadius: '16px', backgroundColor: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '40px' }}>
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="#52B974" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{width: '28px', height: '28px'}}><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
-                                    </div>
-                                    <div>
-                                        <h3 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '15px', color: '#111', letterSpacing: '-0.5px' }}>World-Class Mentorship</h3>
-                                        <p style={{ color: '#64748b', fontSize: '16px', lineHeight: '1.6', margin: 0, fontWeight: '500' }}>Access to IIT Madras faculty, industry experts, and successful entrepreneurs.</p>
-                                    </div>
-                                </div>
+                                <FeatureCard 
+                                    title="World-Class Mentorship"
+                                    desc="Access to IIT Madras faculty, industry experts, and successful entrepreneurs."
+                                    iconSvg={<svg viewBox="0 0 24 24" fill="none" stroke="#52B974" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{width: '28px', height: '28px'}}><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>}
+                                    bgImage="assets/hover_medal.png"
+                                />
                                 
                                 {/* Card 2: Innovation */}
-                                <div className="hover-pop" style={{ backgroundColor: 'white', padding: '50px', borderRadius: '24px', border: '1px solid #E2E8F0', boxShadow: '0 10px 40px rgba(0,0,0,0.03)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                                    <div style={{ width: '60px', height: '60px', borderRadius: '16px', backgroundColor: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '40px' }}>
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="#52B974" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{width: '28px', height: '28px'}}><path d="M13.5 2.5a8.5 8.5 0 0 0-11 11l-2 8 8-2a8.5 8.5 0 0 0 11-11c0-3.3-2.7-6-6-6z"></path><path d="m15.5 8.5-3 3"></path><path d="m8.5 15.5-3 3"></path></svg>
-                                    </div>
-                                    <div>
-                                        <h3 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '15px', color: '#111', letterSpacing: '-0.5px' }}>Innovation Ecosystem</h3>
-                                        <p style={{ color: '#64748b', fontSize: '16px', lineHeight: '1.6', margin: 0, fontWeight: '500' }}>Part of India's leading innovation hub with cutting-edge resources.</p>
-                                    </div>
-                                </div>
+                                <FeatureCard 
+                                    title="Innovation Ecosystem"
+                                    desc="Part of India's leading innovation hub with cutting-edge resources."
+                                    iconSvg={<svg viewBox="0 0 24 24" fill="none" stroke="#52B974" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{width: '28px', height: '28px'}}><path d="M13.5 2.5a8.5 8.5 0 0 0-11 11l-2 8 8-2a8.5 8.5 0 0 0 11-11c0-3.3-2.7-6-6-6z"></path><path d="m15.5 8.5-3 3"></path><path d="m8.5 15.5-3 3"></path></svg>}
+                                    bgImage="assets/hover_lightbulb.png"
+                                />
                                 
                                 {/* Card 3: Network */}
-                                <div className="hover-pop" style={{ backgroundColor: '#111', padding: '50px', borderRadius: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', color: 'white' }}>
-                                    <div style={{ width: '60px', height: '60px', borderRadius: '16px', backgroundColor: '#222', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '40px' }}>
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="#52B974" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{width: '28px', height: '28px'}}><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
-                                    </div>
-                                    <div>
-                                        <h3 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '15px', color: 'white', letterSpacing: '-0.5px' }}>Startup Network</h3>
-                                        <p style={{ color: '#94A3B8', fontSize: '16px', lineHeight: '1.6', margin: 0, fontWeight: '500' }}>Connect with fellow founders and the broader IIT Madras alumni network.</p>
-                                    </div>
-                                </div>
+                                <FeatureCard 
+                                    title="Startup Network"
+                                    desc="Connect with fellow founders and the broader IIT Madras alumni network."
+                                    iconSvg={<svg viewBox="0 0 24 24" fill="none" stroke="#52B974" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{width: '28px', height: '28px'}}><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>}
+                                    bgImage="assets/hover_handshake.png"
+                                    defaultDark={true}
+                                />
                             </div>
                             
                             {/* Stat Typography Block */}
