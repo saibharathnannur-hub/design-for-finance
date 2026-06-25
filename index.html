@@ -1022,23 +1022,59 @@ window.onerror = function(message, source, lineno, colno, error) {
                                 </div>
                             </div>
                             
-                            {/* Logos/Partners Row */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '40px', marginTop: '100px' }}>
-                                <div style={{ fontSize: '24px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px', color: '#000' }}>
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{width: '28px', height: '28px'}}><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                                    NIRMAAN
+                            {/* Editorial Detail Grid */}
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', marginTop: '80px' }}>
+                                {/* Card 1: Mentorship */}
+                                <div style={{ backgroundColor: 'white', padding: '50px', borderRadius: '24px', border: '1px solid #E2E8F0', boxShadow: '0 10px 40px rgba(0,0,0,0.03)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                                    <div style={{ width: '60px', height: '60px', borderRadius: '16px', backgroundColor: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '40px' }}>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="#52B974" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{width: '28px', height: '28px'}}><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+                                    </div>
+                                    <div>
+                                        <h3 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '15px', color: '#111', letterSpacing: '-0.5px' }}>World-Class Mentorship</h3>
+                                        <p style={{ color: '#64748b', fontSize: '16px', lineHeight: '1.6', margin: 0, fontWeight: '500' }}>Access to IIT Madras faculty, industry experts, and successful entrepreneurs.</p>
+                                    </div>
                                 </div>
-                                <div style={{ fontSize: '28px', fontWeight: '900', letterSpacing: '1px', color: '#000' }}>
-                                    IIT MADRAS
+                                
+                                {/* Card 2: Innovation */}
+                                <div style={{ backgroundColor: 'white', padding: '50px', borderRadius: '24px', border: '1px solid #E2E8F0', boxShadow: '0 10px 40px rgba(0,0,0,0.03)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                                    <div style={{ width: '60px', height: '60px', borderRadius: '16px', backgroundColor: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '40px' }}>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="#52B974" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{width: '28px', height: '28px'}}><path d="M13.5 2.5a8.5 8.5 0 0 0-11 11l-2 8 8-2a8.5 8.5 0 0 0 11-11c0-3.3-2.7-6-6-6z"></path><path d="m15.5 8.5-3 3"></path><path d="m8.5 15.5-3 3"></path></svg>
+                                    </div>
+                                    <div>
+                                        <h3 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '15px', color: '#111', letterSpacing: '-0.5px' }}>Innovation Ecosystem</h3>
+                                        <p style={{ color: '#64748b', fontSize: '16px', lineHeight: '1.6', margin: 0, fontWeight: '500' }}>Part of India's leading innovation hub with cutting-edge resources.</p>
+                                    </div>
                                 </div>
-                                <div style={{ fontSize: '26px', fontWeight: '800', fontStyle: 'italic', letterSpacing: '-1px', color: '#000' }}>
-                                    DoMS IITM
+                                
+                                {/* Card 3: Network */}
+                                <div style={{ backgroundColor: '#111', padding: '50px', borderRadius: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', color: 'white' }}>
+                                    <div style={{ width: '60px', height: '60px', borderRadius: '16px', backgroundColor: '#222', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '40px' }}>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="#52B974" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{width: '28px', height: '28px'}}><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                                    </div>
+                                    <div>
+                                        <h3 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '15px', color: 'white', letterSpacing: '-0.5px' }}>Startup Network</h3>
+                                        <p style={{ color: '#94A3B8', fontSize: '16px', lineHeight: '1.6', margin: 0, fontWeight: '500' }}>Connect with fellow founders and the broader IIT Madras alumni network.</p>
+                                    </div>
                                 </div>
-                                <div style={{ fontSize: '28px', fontWeight: '900', letterSpacing: '-2px', color: '#000' }}>
-                                    CFIL
+                            </div>
+                            
+                            {/* Stat Typography Block */}
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '60px', marginTop: '60px', padding: '60px 0', backgroundColor: 'transparent', borderTop: '2px solid rgba(0,0,0,0.05)' }}>
+                                <div style={{ flex: '1', minWidth: '200px' }}>
+                                    <div style={{ fontSize: '56px', fontWeight: '900', color: '#111', letterSpacing: '-2px', lineHeight: '1' }}>IITM</div>
+                                    <div style={{ fontSize: '16px', fontWeight: '700', color: '#64748b', marginTop: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Premier Institution</div>
                                 </div>
-                                <div style={{ fontSize: '24px', fontWeight: '700', textTransform: 'uppercase', color: '#000', letterSpacing: '2px' }}>
-                                    Innovation Hub
+                                <div style={{ flex: '1', minWidth: '200px' }}>
+                                    <div style={{ fontSize: '56px', fontWeight: '900', color: '#111', letterSpacing: '-2px', lineHeight: '1' }}>2024</div>
+                                    <div style={{ fontSize: '16px', fontWeight: '700', color: '#64748b', marginTop: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Incubation Year</div>
+                                </div>
+                                <div style={{ flex: '1', minWidth: '200px' }}>
+                                    <div style={{ fontSize: '56px', fontWeight: '900', color: '#52B974', letterSpacing: '-2px', lineHeight: '1' }}>CFIL</div>
+                                    <div style={{ fontSize: '16px', fontWeight: '700', color: '#64748b', marginTop: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Backing Partner</div>
+                                </div>
+                                <div style={{ flex: '1', minWidth: '200px' }}>
+                                    <div style={{ fontSize: '56px', fontWeight: '900', color: '#111', letterSpacing: '-2px', lineHeight: '1' }}>DoMS</div>
+                                    <div style={{ fontSize: '16px', fontWeight: '700', color: '#64748b', marginTop: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Department Hub</div>
                                 </div>
                             </div>
                         </div>
