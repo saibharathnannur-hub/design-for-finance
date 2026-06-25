@@ -1377,25 +1377,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                             )}
                         </div>
 
-                        {/* PEAK 0: ABOUT US */}
-                        <div style={{
-                            position: 'absolute',
-                            left: `5vw`,
-                            top: `90%`,
-                            transform: 'translate(0, -110%)',
-                            opacity: tipX < 15 ? 1 : Math.max(0, 1 - (tipX - 15) / 10),
-                            transition: 'opacity 0.3s',
-                            display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '15px',
-                            zIndex: 20,
-                            pointerEvents: 'none'
-                        }}>
-                            <div style={{ textAlign: 'left' }}>
-                                <h1 style={{ color: 'white', fontSize: '6rem', margin: '0 0 5px 0', letterSpacing: '2px', whiteSpace: 'nowrap' }}>ABOUT WALFORD OS</h1>
-                                <p style={{ color: '#A0A5B0', fontSize: '1.5rem', margin: 0, maxWidth: '600px', lineHeight: '1.5' }}>
-                                    We are building the future of financial intelligence. Moving markets requires precision, speed, and absolute clarity.
-                                </p>
-                            </div>
-                        </div>
+
 
                         {/* PEAK 1 CONTENT */}
                         <div style={{
@@ -1456,12 +1438,12 @@ window.onerror = function(message, source, lineno, colno, error) {
 
                     </div>
 
-                            {/* PEAK 0: ABOUT US (Placed outside the camera transform so it stays perfectly still on screen) */}
+                            {/* PEAK 0: ABOUT US */}
                             <div style={{
                                 position: 'absolute',
                                 left: `5vw`,
-                                top: `90%`,
-                                transform: 'translate(0, -110%)',
+                                top: `50%`,
+                                transform: 'translate(0, -50%)',
                                 opacity: tipX < 15 ? 1 : Math.max(0, 1 - (tipX - 15) / 10),
                                 transition: 'opacity 0.3s',
                                 display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '15px',
