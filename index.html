@@ -1023,10 +1023,11 @@ window.onerror = function(message, source, lineno, colno, error) {
                     {/* Background SVG */}
                     <div style={{
                         position: 'absolute',
-                        bottom: '-15%', right: '-15%',
-                        width: '80%', height: '80%',
-                        opacity: isHovered ? 0.05 : 0,
-                        transition: 'opacity 0.5s ease',
+                        top: '50%', right: '-10%',
+                        transform: `translateY(-50%) scale(${isHovered ? 1 : 0.9})`,
+                        width: '75%', height: '75%',
+                        opacity: isHovered ? 0.04 : 0,
+                        transition: 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                         pointerEvents: 'none',
                         zIndex: 0,
                         color: '#ffffff'
@@ -1095,7 +1096,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                                     title="World-Class Mentorship"
                                     desc="Access to IIT Madras faculty, industry experts, and successful entrepreneurs."
                                     iconSvg={<svg viewBox="0 0 24 24" fill="none" stroke="#52B974" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{width: '28px', height: '28px'}}><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>}
-                                    bgSvg={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{width: '100%', height: '100%'}}><circle cx="12" cy="8" r="7"/><line x1="12" y1="1" x2="12" y2="15"/><path d="M5 8h14"/><path d="M12 1a7 7 0 0 0-7 7c0 3.86 3.14 7 7 7"/><path d="M12 1a7 7 0 0 1 7 7c0 3.86-3.14 7-7 7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>}
+                                    bgSvg={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round" style={{width: '100%', height: '100%'}}><circle cx="12" cy="8" r="7"/><line x1="12" y1="1" x2="12" y2="15"/><path d="M5 8h14"/><path d="M12 1a7 7 0 0 0-7 7c0 3.86 3.14 7 7 7"/><path d="M12 1a7 7 0 0 1 7 7c0 3.86-3.14 7-7 7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>}
                                 />
                                 
                                 {/* Card 2: Innovation */}
@@ -1103,7 +1104,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                                     title="Innovation Ecosystem"
                                     desc="Part of India's leading innovation hub with cutting-edge resources."
                                     iconSvg={<svg viewBox="0 0 24 24" fill="none" stroke="#52B974" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{width: '28px', height: '28px'}}><path d="M13.5 2.5a8.5 8.5 0 0 0-11 11l-2 8 8-2a8.5 8.5 0 0 0 11-11c0-3.3-2.7-6-6-6z"></path><path d="m15.5 8.5-3 3"></path><path d="m8.5 15.5-3 3"></path></svg>}
-                                    bgSvg={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{width: '100%', height: '100%'}}><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.9 1.2 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>}
+                                    bgSvg={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round" style={{width: '100%', height: '100%'}}><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.9 1.2 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>}
                                 />
                                 
                                 {/* Card 3: Network */}
@@ -1111,7 +1112,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                                     title="Startup Network"
                                     desc="Connect with fellow founders and the broader IIT Madras alumni network."
                                     iconSvg={<svg viewBox="0 0 24 24" fill="none" stroke="#52B974" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{width: '28px', height: '28px'}}><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>}
-                                    bgSvg={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{width: '100%', height: '100%'}}><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3-6 6"/><path d="m3 21 8-8"/><path d="m8.5 15.5 3 3"/><path d="M3 21v-3"/><path d="M3 21h3"/></svg>}
+                                    bgSvg={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round" style={{width: '100%', height: '100%'}}><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3-6 6"/><path d="m3 21 8-8"/><path d="m8.5 15.5 3 3"/><path d="M3 21v-3"/><path d="M3 21h3"/></svg>}
                                     defaultDark={true}
                                 />
                             </div>
