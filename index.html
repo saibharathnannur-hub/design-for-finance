@@ -1099,7 +1099,7 @@ window.onerror = function(message, source, lineno, colno, error) {
         function AboutUsSection() {
             const containerRef = React.useRef(null);
             
-            const [targetProgress, setTargetProgress] = React.useState(0);
+            const targetProgressRef = React.useRef(0);
             const [progress, setProgress] = React.useState(0);
             
             const lastMouseRef = React.useRef({ x: null, y: null, time: 0, v: 0 });
@@ -1127,15 +1127,15 @@ window.onerror = function(message, source, lineno, colno, error) {
                 let animationFrameId;
                 const lerp = () => {
                     setProgress(prev => {
-                        let diff = targetProgress - prev;
-                        if (Math.abs(diff) < 0.001) return targetProgress;
+                        let diff = targetProgressRef.current - prev;
+                        if (Math.abs(diff) < 0.001) return targetProgressRef.current;
                         return prev + diff * 0.05; 
                     });
                     animationFrameId = requestAnimationFrame(lerp);
                 };
                 lerp();
                 return () => cancelAnimationFrame(animationFrameId);
-            }, [targetProgress]);
+            }, []);
 
             // Keyboard navigation effect
             React.useEffect(() => {
@@ -1143,18 +1143,15 @@ window.onerror = function(message, source, lineno, colno, error) {
                     if (!isVisibleRef.current) return; // Only work when this section is visible
                     
                     if (e.key === 'ArrowRight') {
-                        setTargetProgress(prev => {
-                            if (prev < 0.2) return 0.333; 
-                            if (prev < 0.45) return 0.555; 
-                            if (prev < 0.65) return 0.777; 
-                            return 0.777; 
-                        });
+                        let prev = targetProgressRef.current;
+                        if (prev < 0.2) targetProgressRef.current = 0.333; 
+                        else if (prev < 0.45) targetProgressRef.current = 0.555; 
+                        else targetProgressRef.current = 0.777; 
                     } else if (e.key === 'ArrowLeft') {
-                        setTargetProgress(prev => {
-                            if (prev > 0.7) return 0.555; 
-                            if (prev > 0.45) return 0.333; 
-                            return 0; 
-                        });
+                        let prev = targetProgressRef.current;
+                        if (prev > 0.7) targetProgressRef.current = 0.555; 
+                        else if (prev > 0.45) targetProgressRef.current = 0.333; 
+                        else targetProgressRef.current = 0; 
                     }
                 };
                 window.addEventListener('keydown', handleKeyDown);
@@ -1233,15 +1230,14 @@ window.onerror = function(message, source, lineno, colno, error) {
                 
                 lastMouseRef.current = { x: e.clientX, y: e.clientY, time: now, v };
 
-                // Only accumulate progress if the user is moving their mouse horizontally
-                // We ignore mostly-vertical movements.
-                if (Math.abs(dx) > Math.abs(dy) * 1.2 && Math.abs(dx) > 1) {
-                    setTargetProgress(prev => {
-                        // The user needs to move the mouse horizontally by approx 60% of their screen width to scroll the full graph
+                // We use a continuous deadzone formula to prevent micro-jitters 
+                if (Math.abs(dx) > 1) {
+                    const angleRatio = Math.abs(dx) / (Math.abs(dy) + 1);
+                    if (angleRatio > 0.5) {
                         const sensitivity = window.innerWidth * 0.6; 
-                        let newPct = prev + (dx / sensitivity);
-                        return Math.max(0, Math.min(1, newPct));
-                    });
+                        let newPct = targetProgressRef.current + (dx / sensitivity);
+                        targetProgressRef.current = Math.max(0, Math.min(1, newPct));
+                    }
                 }
             };
 
