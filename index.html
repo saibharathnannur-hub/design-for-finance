@@ -844,14 +844,14 @@ window.onerror = function(message, source, lineno, colno, error) {
                     if (!outerRef.current) return;
                     const rect = outerRef.current.getBoundingClientRect();
                     if (rect.top > 0 && rect.top < window.innerHeight) {
-                        const distanceScrolled = window.innerHeight - rect.top;
-                        const fade = Math.min(1, distanceScrolled / (window.innerHeight * 0.6));
-                        const easeOutCubic = x => 1 - Math.pow(1 - x, 3);
-                        setSectionOpacity(easeOutCubic(fade));
+                        const scrolledProgress = 1 - (rect.top / window.innerHeight);
+                        // Fade from 0.3 to 1.0
+                        const opacity = 0.3 + (scrolledProgress * 0.7);
+                        setSectionOpacity(Math.min(1, opacity));
                     } else if (rect.top <= 0) {
                         setSectionOpacity(1);
                     } else {
-                        setSectionOpacity(0);
+                        setSectionOpacity(0.3);
                     }
                 };
                 
@@ -1237,9 +1237,10 @@ window.onerror = function(message, source, lineno, colno, error) {
                     if (!containerRef.current) return;
                     const rect = containerRef.current.getBoundingClientRect();
                     if (rect.bottom < window.innerHeight) {
-                        const fade = Math.max(0, rect.bottom / (window.innerHeight * 0.8));
-                        const easeInQuad = x => x * x;
-                        setSectionOpacity(easeInQuad(fade));
+                        const scrolledProgress = 1 - (rect.bottom / window.innerHeight);
+                        // Fade from 1.0 to 0.4
+                        const opacity = 1 - (scrolledProgress * 0.6);
+                        setSectionOpacity(Math.max(0.4, opacity));
                     } else {
                         setSectionOpacity(1);
                     }
