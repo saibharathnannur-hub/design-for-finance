@@ -1300,6 +1300,16 @@ window.onerror = function(message, source, lineno, colno, error) {
                 zoom = 1 + (1.5 * smoothZoom); // Increased from 0.85 to 1.5 for much more zoom
             }
 
+            // Map the underlying non-linear progress mathematically to a visually evenly spaced progress bar
+            let visualProgress = 0;
+            if (progress <= 0.333) {
+                visualProgress = (progress / 0.333) * 33.333;
+            } else if (progress <= 0.555) {
+                visualProgress = 33.333 + ((progress - 0.333) / (0.555 - 0.333)) * 33.333;
+            } else {
+                visualProgress = 66.666 + ((Math.min(0.777, progress) - 0.555) / (0.777 - 0.555)) * 33.333;
+            }
+
             return (
                 <div 
                     ref={containerRef}
@@ -1476,7 +1486,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                                         top: 0,
                                         left: 0,
                                         height: '100%',
-                                        width: `${(progress / 0.777) * 100}%`,
+                                        width: `${visualProgress}%`,
                                         backgroundColor: '#52B974',
                                         transition: 'width 0.1s linear'
                                     }} />
@@ -1489,7 +1499,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                                         <div key={i} style={{
                                             position: 'absolute',
                                             top: '50%',
-                                            left: `${(targetP / 0.777) * 100}%`,
+                                            left: `${i * 33.333}%`,
                                             transform: 'translate(-50%, -50%)',
                                             width: isActive ? '10px' : '6px',
                                             height: isActive ? '10px' : '6px',
