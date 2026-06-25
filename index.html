@@ -1129,7 +1129,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                     setProgress(prev => {
                         let diff = targetProgressRef.current - prev;
                         if (Math.abs(diff) < 0.001) return targetProgressRef.current;
-                        return prev + diff * 0.02; 
+                        return prev + diff * 0.025; 
                     });
                     animationFrameId = requestAnimationFrame(lerp);
                 };
