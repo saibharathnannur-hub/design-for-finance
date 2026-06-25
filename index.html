@@ -844,17 +844,31 @@ window.onerror = function(message, source, lineno, colno, error) {
                     if (!outerRef.current) return;
                     const rect = outerRef.current.getBoundingClientRect();
                     if (rect.top > 0 && rect.top < window.innerHeight) {
-                        const fade = 1 - (rect.top / window.innerHeight);
-                        setSectionOpacity(Math.min(1, fade * 1.5));
+                        const distanceScrolled = window.innerHeight - rect.top;
+                        const fade = Math.min(1, distanceScrolled / (window.innerHeight * 0.6));
+                        const easeOutCubic = x => 1 - Math.pow(1 - x, 3);
+                        setSectionOpacity(easeOutCubic(fade));
                     } else if (rect.top <= 0) {
                         setSectionOpacity(1);
                     } else {
                         setSectionOpacity(0);
                     }
                 };
-                window.addEventListener('scroll', handleScrollFade);
+                
+                let ticking = false;
+                const onScroll = () => {
+                    if (!ticking) {
+                        window.requestAnimationFrame(() => {
+                            handleScrollFade();
+                            ticking = false;
+                        });
+                        ticking = true;
+                    }
+                };
+                
+                window.addEventListener('scroll', onScroll, { passive: true });
                 handleScrollFade();
-                return () => window.removeEventListener('scroll', handleScrollFade);
+                return () => window.removeEventListener('scroll', onScroll);
             }, []);
 
             const handleMouseMove = (e) => {
@@ -871,7 +885,7 @@ window.onerror = function(message, source, lineno, colno, error) {
             };
 
             return (
-                <div ref={outerRef} style={{ backgroundColor: '#000', padding: '100px 5vw', opacity: sectionOpacity, transition: 'opacity 0.1s linear' }}>
+                <div ref={outerRef} style={{ backgroundColor: '#000', padding: '100px 5vw', opacity: sectionOpacity, transition: 'none' }}>
                     <div style={{ textAlign: 'center', marginBottom: '60px' }}>
                         <h2 style={{ color: 'white', fontSize: '3.5rem', fontWeight: 'bold', letterSpacing: '1px', margin: 0 }}>
                             Don't just see change, experience change.
@@ -1223,14 +1237,27 @@ window.onerror = function(message, source, lineno, colno, error) {
                     if (!containerRef.current) return;
                     const rect = containerRef.current.getBoundingClientRect();
                     if (rect.bottom < window.innerHeight) {
-                        const fade = Math.max(0, rect.bottom / window.innerHeight);
-                        setSectionOpacity(fade);
+                        const fade = Math.max(0, rect.bottom / (window.innerHeight * 0.8));
+                        const easeInQuad = x => x * x;
+                        setSectionOpacity(easeInQuad(fade));
                     } else {
                         setSectionOpacity(1);
                     }
                 };
-                window.addEventListener('scroll', handleScrollFade);
-                return () => window.removeEventListener('scroll', handleScrollFade);
+                
+                let ticking = false;
+                const onScroll = () => {
+                    if (!ticking) {
+                        window.requestAnimationFrame(() => {
+                            handleScrollFade();
+                            ticking = false;
+                        });
+                        ticking = true;
+                    }
+                };
+                
+                window.addEventListener('scroll', onScroll, { passive: true });
+                return () => window.removeEventListener('scroll', onScroll);
             }, []);
 
             // Lerp effect
@@ -1426,7 +1453,7 @@ window.onerror = function(message, source, lineno, colno, error) {
                     ref={containerRef}
                     onMouseMove={handleMouseMove}
                     onMouseLeave={handleMouseLeave}
-                    style={{ position: 'relative', width: '100vw', height: '100vh', backgroundColor: '#000', overflow: 'hidden', opacity: sectionOpacity, transition: 'opacity 0.1s linear' }}
+                    style={{ position: 'relative', width: '100vw', height: '100vh', backgroundColor: '#000', overflow: 'hidden', opacity: sectionOpacity, transition: 'none' }}
                 >
                     <div style={{
                         position: 'absolute',
