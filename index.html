@@ -1236,7 +1236,8 @@ window.onerror = function(message, source, lineno, colno, error) {
                     if (angleRatio > 0.5) {
                         const sensitivity = window.innerWidth * 0.6; 
                         let newPct = targetProgressRef.current + (dx / sensitivity);
-                        targetProgressRef.current = Math.max(0, Math.min(1, newPct));
+                        // Cap at 0.777 so the graph ends at the final text peak and doesn't continue into empty space
+                        targetProgressRef.current = Math.max(0, Math.min(0.777, newPct));
                     }
                 }
             };
