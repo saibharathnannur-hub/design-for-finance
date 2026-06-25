@@ -1268,10 +1268,19 @@ window.onerror = function(message, source, lineno, colno, error) {
             const activeGraphPointsString = activePoints.map(p => `${p.x},${p.y}`).join(' ') + ` ${tipX},${tipY}`;
 
             const camTipX = Math.min(175, tipX);
-            let camTipY = 50;
-            if (activePoints.length > 0) {
-                const camPoint = activePoints.find(p => p.x >= camTipX) || activePoints[activePoints.length - 1];
-                camTipY = camPoint.y;
+            let camTipY = tipY;
+            if (tipX > 175) {
+                const exactCamIndex = (175 / 225) * maxIndex;
+                const fIndex = Math.floor(exactCamIndex);
+                const cIndex = Math.min(maxIndex, Math.ceil(exactCamIndex));
+                const frac = exactCamIndex - fIndex;
+                const cp1 = graphPoints[fIndex];
+                const cp2 = graphPoints[cIndex];
+                if (cp1 && cp2) {
+                    camTipY = cp1.y + (cp2.y - cp1.y) * frac;
+                } else if (cp1) {
+                    camTipY = cp1.y;
+                }
             }
 
             let translateX = Math.min(0, 50 - camTipX); 
