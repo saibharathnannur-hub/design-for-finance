@@ -353,6 +353,10 @@ window.onerror = function(message, source, lineno, colno, error) {
         .wos-alert-title::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #8A92A6; }
         .wos-alert-desc { font-size: 13px; color: #8A92A6; margin: 0; line-height: 1.5;}
 
+        @keyframes ticker {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
     </style>
 </head>
 <body>
@@ -967,20 +971,44 @@ window.onerror = function(message, source, lineno, colno, error) {
                         <div style={{
                             position: 'absolute',
                             top: '5%',
-                            left: '5%',
-                            fontSize: '28vw',
-                            fontWeight: '900',
-                            color: '#CCFF00',
-                            fontFamily: '"Caveat Brush", "Permanent Marker", cursive',
+                            left: '-10%',
+                            width: '200vw',
                             transform: 'rotate(-8deg)',
                             whiteSpace: 'nowrap',
-                            opacity: 1,
+                            opacity: 0.5,
                             pointerEvents: 'none',
                             zIndex: 1,
-                            lineHeight: '0.8',
-                            userSelect: 'none'
+                            userSelect: 'none',
+                            display: 'flex'
                         }}>
-                            Incubated
+                            <div style={{ 
+                                animation: 'ticker 20s linear infinite', 
+                                display: 'flex', 
+                                fontSize: '28vw',
+                                fontWeight: '900',
+                                color: '#52B974',
+                                fontFamily: '"Caveat Brush", "Permanent Marker", cursive',
+                                lineHeight: '0.8'
+                            }}>
+                                <span style={{ paddingRight: '100px' }}>Incubated</span>
+                                <span style={{ paddingRight: '100px' }}>Incubated</span>
+                                <span style={{ paddingRight: '100px' }}>Incubated</span>
+                                <span style={{ paddingRight: '100px' }}>Incubated</span>
+                            </div>
+                            <div style={{ 
+                                animation: 'ticker 20s linear infinite', 
+                                display: 'flex', 
+                                fontSize: '28vw',
+                                fontWeight: '900',
+                                color: '#52B974',
+                                fontFamily: '"Caveat Brush", "Permanent Marker", cursive',
+                                lineHeight: '0.8'
+                            }}>
+                                <span style={{ paddingRight: '100px' }}>Incubated</span>
+                                <span style={{ paddingRight: '100px' }}>Incubated</span>
+                                <span style={{ paddingRight: '100px' }}>Incubated</span>
+                                <span style={{ paddingRight: '100px' }}>Incubated</span>
+                            </div>
                         </div>
                         
                         {/* Foreground Content */}
