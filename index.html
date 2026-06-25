@@ -1250,17 +1250,26 @@ window.onerror = function(message, source, lineno, colno, error) {
             };
 
             const maxIndex = graphPoints.length - 1; 
-            const currentIndex = Math.max(1, Math.floor(progress * maxIndex));
-            const activePoints = graphPoints.slice(0, currentIndex);
+            const exactIndex = Math.max(0, progress * maxIndex);
+            const floorIndex = Math.floor(exactIndex);
+            const ceilIndex = Math.min(maxIndex, Math.ceil(exactIndex));
+            const fraction = exactIndex - floorIndex;
+
+            const p1 = graphPoints[floorIndex];
+            const p2 = graphPoints[ceilIndex];
             
             let tipX = 0;
             let tipY = 50;
-            if (activePoints.length > 0) {
-                tipX = activePoints[activePoints.length - 1].x;
-                tipY = activePoints[activePoints.length - 1].y;
+            if (p1 && p2) {
+                tipX = p1.x + (p2.x - p1.x) * fraction;
+                tipY = p1.y + (p2.y - p1.y) * fraction;
+            } else if (p1) {
+                tipX = p1.x;
+                tipY = p1.y;
             }
 
-            const activeGraphPointsString = activePoints.map(p => `${p.x},${p.y}`).join(' ');
+            const activePoints = graphPoints.slice(0, floorIndex + 1);
+            const activeGraphPointsString = activePoints.map(p => `${p.x},${p.y}`).join(' ') + ` ${tipX},${tipY}`;
 
             const camTipX = Math.min(175, tipX);
             let camTipY = 50;
@@ -1334,17 +1343,19 @@ window.onerror = function(message, source, lineno, colno, error) {
                             </svg>
 
                             {activePoints.length > 0 && (
-                                <div style={{
-                                    position: 'absolute',
-                                    left: `${(tipX / 225) * 100}%`,
-                                    top: `${tipY}%`,
-                                    width: '6px',
-                                    height: '6px',
+                                <div style={{ 
+                                    position: 'absolute', 
+                                    left: `${(tipX / 225) * 100}%`, 
+                                    top: `${tipY}%`, 
+                                    width: '6px', 
+                                    height: '6px', 
                                     backgroundColor: '#FFF',
                                     borderRadius: '50%',
                                     transform: 'translate(-50%, -50%)',
                                     boxShadow: '0 0 20px 8px rgba(82, 185, 116, 0.8), 0 0 8px 3px rgba(82, 185, 116, 1)',
-                                    zIndex: 10
+                                    zIndex: 10,
+                                    opacity: 1,
+                                    transition: 'left 0.1s, top 0.1s, opacity 0.3s'
                                 }} />
                             )}
                         </div>
