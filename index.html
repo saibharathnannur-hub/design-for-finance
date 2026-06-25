@@ -1245,6 +1245,10 @@ window.onerror = function(message, source, lineno, colno, error) {
                 }
             };
 
+            const handleMouseLeave = () => {
+                lastMouseRef.current = { x: null, y: null, time: 0, v: 0 };
+            };
+
             const maxIndex = graphPoints.length - 1; 
             const exactIndex = Math.max(0, progress * maxIndex);
             const floorIndex = Math.floor(exactIndex);
